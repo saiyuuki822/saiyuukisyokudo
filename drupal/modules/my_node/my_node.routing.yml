@@ -1,0 +1,71 @@
+my_node:
+  path: '/api/node_list/{tid}'
+  defaults:
+    _title: 'API Node'
+    _controller: '\Drupal\my_node\MyNodeController::node_list'
+  requirements:
+    _permission: 'access content'
+
+my_node2:
+  path: '/api/node_data/{nid}'
+  defaults:
+    _title: 'API Node'
+    _controller: '\Drupal\my_node\MyNodeController::node_data'
+  requirements:
+    _permission: 'access content'
+
+my_node3:
+  path: '/api/user_login'
+  defaults:
+    _title: 'API User Login'
+    _controller: '\Drupal\my_node\UserController::user_login'
+  requirements:
+    _permission: 'access content'
+    
+my_node4:
+  path: '/api/navigation/{uid}'
+  defaults:
+    _title: 'API Navigation Login'
+    _controller: '\Drupal\my_node\NavigationController::navigation'
+  requirements:
+    _permission: 'access content'
+
+my_node5:
+  path: '/api/page/{tid}'
+  defaults:
+    _title: 'API Navigation Login'
+    _controller: '\Drupal\my_node\MyNodeController::page'
+  requirements:
+    _permission: 'access content'
+    
+my_node6:
+  path: '/api/mail'
+  defaults:
+    _title: 'API Mail'
+    _controller: '\Drupal\my_node\MyNodeController::mail'
+  requirements:
+    _permission: 'access content'
+    
+my_node7:
+  path: '/api/user_sub_menu/{uid}'
+  defaults:
+    _title: 'API User Sub Menu'
+    _controller: '\Drupal\my_node\UserController::user_sub_menu'
+  requirements:
+    _permission: 'access content'
+    
+my_node8:
+  path: '/api/file'
+  defaults:
+    _title: 'API Mail'
+    _controller: '\Drupal\my_node\MyNodeController::file'
+  requirements:
+    _permission: 'access content'
+    
+my_node9:
+  path: '/api/node_post'
+  defaults:
+    _title: 'API Node POST'
+    _controller: '\Drupal\my_node\MyNodeController::node_post'
+  requirements:
+    _permission: 'access content'

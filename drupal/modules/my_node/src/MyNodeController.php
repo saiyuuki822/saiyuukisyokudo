@@ -1,0 +1,123 @@
+<?php
+
+namespace Drupal\my_node;
+
+use Drupal\Core\Controller\ControllerBase;
+use Drupal\node\NodeInterface;
+use Drupal\node\Entity\Node;
+use Symfony\Component\HttpFoundation\Request;
+
+/**
+ * Hello!を表示するコントローラー
+ */
+class MyNodeController  extends ControllerBase {
+  public function node_list($tid) {
+    $node = new NodeModel();
+    if($tid == 'all') {
+      $result = json_decode(json_encode($node->get_node_list()), true);
+    } else if(is_numeric($tid)) {
+      $result = json_decode(json_encode($node->get_node_list(2, $tid)), true);
+    }
+    
+    foreach($result as $id => $data) {
+        $node = node_load($data["nid"]);
+        $user = user_load($data["uid"]);
+        if(isset($user->user_picture->entity)) {
+            $result[$id]["picture"] = file_create_url($user->user_picture->entity->getFileUri());
+        }
+        if(isset($node->field_image)) {
+            foreach($node->field_image as $image) {
+                if($image->entity) {
+                    $result[$id]["image"][] = $image->entity->url();
+                }
+            }
+        }
+    }
+    header("Content-Type: application/json; charset=utf-8");
+    echo (json_encode($result, true));
+    exit(1);
+  }
+  
+  public function node_data($nid) {
+    $node = new NodeModel();
+    $result = json_decode(json_encode($node->get_node_list(1, $nid)), true);
+    foreach($result as $id => $data) {
+        $node = node_load($data["nid"]);
+        $user = user_load($data["uid"]);
+        if(isset($user->user_picture->entity)) {
+            $result[$id]["picture"] = file_create_url($user->user_picture->entity->getFileUri());
+        }
+        if(isset($node->field_image)) {
+            foreach($node->field_image as $image) {
+                if($image->entity) {
+                    $result[$id]["image"][] = $image->entity->url();
+                }
+            }
+        }
+    }
+    header("Content-Type: application/json; charset=utf-8");
+    echo (json_encode($result, true));
+    exit(1);
+  }
+  
+  public function page($tid) {
+    $node = new NodeModel();
+    $result = json_decode(json_encode($node->get_page_data($tid)), true);
+    header("Content-Type: application/json; charset=utf-8");
+    echo (json_encode($result, true));
+    exit(1);
+  }
+  
+  public function mail(Request $request) {
+    $uid = $request->query->get('uid');
+    $user = user_load($uid);
+    $to = $user->mail->value;
+    $name = $request->query->get('name');
+    $contact = $request->query->get('contact');
+    $type = $request->query->get('type');
+    $body = $request->query->get('body');
+    $params['name'] = $name;
+    $params['contact'] = $contact;
+    $params['message'] = 'メッセージが来ました  W(`0`)W';
+    $params['body'] = $body;
+    $params['type'] = $type;
+    $message = \Drupal::service('plugin.manager.mail')->mail('my_node', 'notice', $to, 'ja', $params, FALSE);
+    echo (json_encode($params, true));
+    exit(1);
+  }
+  
+  public function file() {
+    $query = db_select('file_managed', 'f');
+    $query->fields('f',array('fid', 'uri'));
+    $query->orderBy('f.fid', 'ASC');
+    $result = $query->execute()->fetchAll();
+    $list = [];
+    foreach($result as $data) {
+      $list[$data->fid] = file_create_url($data->uri);              
+    }
+    echo (json_encode($list, true));
+    exit(1);
+  }
+  
+  public function node_post(Request $request) {
+    $uid = $request->query->get('uid');
+    $user = user_load($uid);
+    $to = $user->mail->value;
+    $title = $request->query->get('title');
+    $body = $request->query->get('body');
+    $type = $request->query->get('type');
+    $body = $request->query->get('body');
+    $node = Node::create(array(
+        'type' => 'article',
+        'title' => $title,
+        'body'  =>  $body,
+        'langcode' => 'ja',
+        'uid' => $uid,
+        'status' => 1,
+    ));
+
+    $node->save();
+    echo (json_encode($params, true));
+    exit(1);
+  }
+}

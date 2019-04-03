@@ -1,0 +1,26 @@
+<?php
+
+function my_node_preprocess_node(&$variables) {
+    $user = user_load(29);
+    $to = $user->mail->value;
+    $params['context']['subject'] = "Subject";
+    $params['context']['message'] = 'body';
+    $params['body'] = 'メッセージが来ました  W(`0`)W';
+    $message = \Drupal::service('plugin.manager.mail')->mail('my_node', 'notice', $to, 'ja', $params, true);
+    
+}
+
+/**
+ * Implements hook_mail().
+ */
+function my_node_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'notice':
+      $message['subject'] = "食堂からの問い合わせです";
+      $message['body'][] = '問い合わせ区分：'.$params["type"];
+      $message['body'][] = '名前：'.$params["name"];
+      $message['body'][] = '連絡先：'.$params["contact"];
+      $message['body'][] = '問い合わせ内容：'.$params["body"];
+      break;
+  }
+}
