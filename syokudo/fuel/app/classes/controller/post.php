@@ -30,15 +30,21 @@ class Controller_Post extends Controller_My
 	 */
 	public function action_index()
 	{
-    if(Input::post() || Input::get() ) {
-      $title = Input::get('post-title');
-      $body = Input::get('post-body');
+    
+    if(Input::post()) {
+      $title = Input::post('post_title');
+      $body  = Input::post('post_body');
       $login_user = Session::get('user');
+      $file = $_FILES['post_file']['tmp_name'];
+      $cfile = new CURLFile($_FILES["post_file"]["tmp_name"],'image/jpeg','test_name');
       $curl = Request::forge('http://myportal.jpn.com/api/node_post', 'curl');
-      $curl->set_params(array('title' => $title, 'body' => $body, 'uid' => $login_user['uid']));
+      $curl->set_option(CURLOPT_RETURNTRANSFER,true); 
+      $curl->set_option(CURLOPT_BINARYTRANSFER,true);
+      $curl->set_header('Content-Type','multipart/form-data');
+      $curl->set_params(array('title' => $title, 'body' => $body, 'uid' => $login_user['uid'], 'image' => $file));
       $response = $curl->execute()->response();
       $result = \Format::forge($response->body,'json')->to_array();
-      echo (json_encode($result, true));
+      echo json_encode(array('title' => $title, 'body' => $body, 'file' => $cfile), true);
       exit(1);
     }
     Session::delete('user');
@@ -54,11 +60,53 @@ class Controller_Post extends Controller_My
 	 * @access  public
 	 * @return  Response
 	 */
-	public function action_hello()
+	public function action_delete()
 	{
-		return Response::forge(Presenter::forge('login/hello'));
+    if(Input::post()) {
+      $nid = Input::post('post_nid');
+      $curl = Request::forge('http://myportal.jpn.com/api/node_delete', 'curl');
+      $curl->set_params(array('nid' => $nid));
+      $response = $curl->execute()->response();
+      echo json_encode(array('nid' => $nid), true);
+      exit(1);
+    }
+    exit(1);
 	}
 
+  public function action_upload_file()
+  {
+    if(Input::post()) {
+      $login_user = Session::get('user');
+      $file = $_FILES['body_file']['tmp_name'];
+      $cfile = new CURLFile($_FILES["body_file"]["tmp_name"],'image/jpeg','test_name');
+      $curl = Request::forge('http://myportal.jpn.com/api/upload_file', 'curl');
+      $curl->set_option(CURLOPT_RETURNTRANSFER,true);
+      $curl->set_option(CURLOPT_BINARYTRANSFER,true);
+      $curl->set_header('Content-Type','multipart/form-data');
+      $curl->set_params(array('uid' => $login_user['uid'], 'image' => $file));
+      $response = $curl->execute()->response();
+      $result = \Format::forge($response->body,'json')->to_array();
+      echo json_encode(array('uid' => $login_user['uid'], 'file' => $cfile, 'file_url' => $result['file_url']), true);
+      exit(1);
+    }
+    Session::delete('user');
+    $this->template->title = 'Example Page';
+    $this->template->content = View::forge('login/index', [], false)->auto_filter(false);
+    return $this->template;
+  }
+  
+	/**
+	 * A typical "Hello, Bob!" type example.  This uses a Presenter to
+	 * show how to use them.
+	 *
+	 * @access  public
+	 * @return  Response
+	 */
+	public function action_hello()
+	{
+		return Response::forge(Presenter::forge('welcome/hello'));
+	}
+  
 	/**
 	 * The 404 action for the application.
 	 *

@@ -69,3 +69,21 @@ my_node9:
     _controller: '\Drupal\my_node\MyNodeController::node_post'
   requirements:
     _permission: 'access content'
+    
+my_node10:
+  path: '/api/node_delete'
+  defaults:
+    _title: 'API Node POST'
+    _controller: '\Drupal\my_node\MyNodeController::node_delete'
+  requirements:
+    _permission: 'access content'
+
+my_node11:
+  path: '/api/upload_file'
+  defaults:
+    _title: 'API Node POST'
+    _controller: '\Drupal\my_node\MyNodeController::upload_file'
+  requirements:
+    _permission: 'access content'
+    
+

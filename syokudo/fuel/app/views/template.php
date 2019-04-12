@@ -33,6 +33,7 @@
 
 <body class="with-top-navbar">
 
+  <div class="loding-area" style="display:none;z-index:999;position:absolute;left:50%;top:50%"><img src="/assets/img/ld_icon.gif"></div> 
 
 <div class="growl" id="app-growl"></div>
 
@@ -371,23 +372,27 @@
             <form id="upload-form" method="post" enctype="multipart/form-data">
             <li class="list-group-item">
               <div class="media">
-                <input type="text" name="post-title" placeholder="Title" style="width: 100%;" class="form-control" data-action="grow" />
+                <input type="text" name="post_title" placeholder="Title" style="width: 100%;" class="form-control" data-action="grow" />
               </div>
             </li>
             <li class="list-group-item">
               <div class="media">
-                <textarea name="post-body" rows="4" cols="40" placeholder="Body" style="width: 100%;" class="form-control"></textarea>
+                <button onClick="return upload_file(this);"><span class="icon icon-image"></span></button>
+                <div style="display:none;">
+                  <input type="file" name="body_file" id="body_file" onchange="return change_body_file(this);" />
+                </div>
+                <textarea id="post_body" name="post_body" rows="4" cols="40" placeholder="Body" style="width: 100%;" class="form-control"></textarea>
               </div>
             </li>
             <li class="list-group-item">
               <div class="media">
-                 <input type="file" name="post-file" class="form-control" placeholder="アイキャッチ画像"/>
+                 <input type="file" name="post_file" class="form-control" placeholder="アイキャッチ画像"/>
               </div>
             </li>
             <li class="list-group-item">
               <div class="media">
                 <div class="media-body">
-                  <button class="btn btn-default btn-sm pull-right" onClick="return upload(this);">
+                  <button class="btn btn-default btn-sm pull-right close" data-dismiss="modal" onClick="return upload(this);">
                     <span class="glyphicon glyphicon-user"></span> Post
                   </button>
                 </div>

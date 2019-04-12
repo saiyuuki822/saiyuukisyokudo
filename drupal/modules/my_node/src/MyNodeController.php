@@ -106,11 +106,18 @@ class MyNodeController  extends ControllerBase {
     $title = $request->query->get('title');
     $body = $request->query->get('body');
     $type = $request->query->get('type');
-    $body = $request->query->get('body');
+    $image = $request->query->get('image');
+    $image_data = file_get_contents($image);
+    $file = file_save_data($image_data, "public://". basename($image).".jpg", FILE_EXISTS_REPLACE);
     $node = Node::create(array(
         'type' => 'article',
         'title' => $title,
         'body'  =>  $body,
+        'field_image' => [
+          'target_id' => $file->id(),
+          'alt' => 'Image',
+          'title' => 'Image File'
+        ],
         'langcode' => 'ja',
         'uid' => $uid,
         'status' => 1,
@@ -118,6 +125,24 @@ class MyNodeController  extends ControllerBase {
 
     $node->save();
     echo (json_encode($params, true));
+    exit(1);
+  }
+  
+  public function node_delete(Request $request) {
+    $nid = $request->query->get('nid');
+    $node = node_load($nid);
+    $node->delete();
+    echo (json_encode(array($nid), true));
+    exit(1);
+  }
+  
+  public function upload_file(Request $request) {
+    $uid = $request->query->get('uid');
+    $image = $request->query->get('image');
+    $image_data = file_get_contents($image);
+    $file = file_save_data($image_data, "public://". basename($image).".jpg", FILE_EXISTS_REPLACE);
+    $file_url = file_create_url("public://". basename($image).".jpg");
+    echo (json_encode(array('file_url' => $file_url), true));
     exit(1);
   }
 }

@@ -6,7 +6,13 @@
               src="<?php echo $image[$data["picture"]];?>">
           </a>
           <div class="media-body">
+            <div style="text-align: right;">
+            <form id="delete-form" method="post" name"delete-form">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onClick="return post_delete(this);">×</button></div>
+              <input type="hidden" name="post_nid" value="<?php echo $data["nid"];?>" />
+            </form>
             <div class="media-heading">
+              
               <small class="pull-right text-muted">4 min</small>
               <a href="<?php echo $data['user_site_url'];?>" target="_blank"><h5><?php echo $data["user_name"];?></h5></a>
             </div>
