@@ -55,6 +55,8 @@ class Controller_Welcome extends Controller_My
       $list = \Format::forge($response->body,'json')->to_array();
       $navigation = $list;
       Session::set('navigation', $navigation);
+    } else {
+      Response::redirect('/index.php/login', 'refresh', 200);
     }
 
     $login_user['follow'] = $follow;
