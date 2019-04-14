@@ -48,10 +48,20 @@ class Controller_Welcome extends Controller_My
     $login_user = Session::get('user');
     $follow = $user->get_user_follow($login_user['uid']);
     $favorite_url = $user->get_user_favorite_url($login_user['uid']);
+    if(isset($login_user['uid'])) {
+      // メインナビゲーションを取得
+      $curl = Request::forge('http://myportal.jpn.com/api/navigation/'.$login_user['uid'], 'curl');
+      $response = $curl->execute()->response();
+      $list = \Format::forge($response->body,'json')->to_array();
+      $navigation = $list;
+      Session::set('navigation', $navigation);
+    }
+
     $login_user['follow'] = $follow;
     $login_user['favorite_url'] = $favorite_url;
     $this->template->title = 'Example Page';
     $this->template->user = $login_user;
+    //$this->template->user_navigation = $navigation;
     $this->template->image = $this->image;
     $this->template->content = View::forge('welcome/index', ["list" => $node_list, 'image' => $this->image, "comment_list" => $comment_list], false)->auto_filter(false);
     return $this->template;

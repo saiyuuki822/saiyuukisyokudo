@@ -34,14 +34,25 @@ class Controller_Post extends Controller_My
     if(Input::post()) {
       $title = Input::post('post_title');
       $body  = Input::post('post_body');
+      $navigation = Input::post('navigation');
       $login_user = Session::get('user');
       $file = $_FILES['post_file']['tmp_name'];
       $cfile = new CURLFile($_FILES["post_file"]["tmp_name"],'image/jpeg','test_name');
-      $curl = Request::forge('http://myportal.jpn.com/api/node_post', 'curl');
+      if(Input::post('edit_nid')) {
+        $edit_nid = Input::post('edit_nid');
+      }
+      if(isset($edit_nid) && strlen($edit_nid)) {
+        \Log::info("node_post_edit!!!");
+        $curl = Request::forge('http://myportal.jpn.com/api/aaa', 'curl');
+      } else {
+        \Log::info("node_post!!!");
+        $curl = Request::forge('http://myportal.jpn.com/api/node_post', 'curl');
+      }
+      
       $curl->set_option(CURLOPT_RETURNTRANSFER,true); 
       $curl->set_option(CURLOPT_BINARYTRANSFER,true);
       $curl->set_header('Content-Type','multipart/form-data');
-      $curl->set_params(array('title' => $title, 'body' => $body, 'uid' => $login_user['uid'], 'image' => $file));
+      $curl->set_params(array('title' => $title, 'body' => $body, 'uid' => $login_user['uid'], 'navigation' => $navigation, 'image' => $file, 'nid' => $edit_nid));
       $response = $curl->execute()->response();
       $result = \Format::forge($response->body,'json')->to_array();
       echo json_encode(array('title' => $title, 'body' => $body, 'file' => $cfile), true);
@@ -53,6 +64,31 @@ class Controller_Post extends Controller_My
     return $this->template;
 	}
 
+	/**
+	 * A typical "Hello, Bob!" type example.  This uses a Presenter to
+	 * show how to use them.
+	 *
+	 * @access  public
+	 * @return  Response
+	 */
+	public function action_edit()
+	{
+    if(Input::post() || Input::get()) {
+      if(Input::get()) {
+        $nid = Input::get('post_nid');
+      } else {
+        $nid = Input::post('post_nid');
+      }
+      $curl = Request::forge('http://myportal.jpn.com/api/node_data/'.$nid, 'curl');
+      $curl->set_params(array('nid' => $nid));
+      $response = $curl->execute()->response();
+      $result = \Format::forge($response->body,'json')->to_array();
+      echo json_encode($result, true);
+      exit(1);
+    }
+    exit(1);
+	}
+  
 	/**
 	 * A typical "Hello, Bob!" type example.  This uses a Presenter to
 	 * show how to use them.

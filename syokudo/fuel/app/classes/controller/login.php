@@ -42,9 +42,10 @@ class Controller_Login extends Controller_My
       $user = new Model_User();
       $login_user = $user->get_user($result['uid']);
       Session::set('user', $login_user[0]);
-      header("Content-Type: application/json; charset=utf-8");
-      echo (json_encode($result, true));
-      exit(1);
+      Response::redirect('/', 'refresh', 200);
+      //header("Content-Type: application/json; charset=utf-8");
+      //echo (json_encode($result, true));
+      //exit(1);
     }
     Session::delete('user');
     $this->template->title = 'Example Page';

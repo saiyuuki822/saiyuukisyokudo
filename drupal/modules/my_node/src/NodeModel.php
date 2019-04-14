@@ -19,6 +19,7 @@ class NodeModel {
         $query->fields('f', array('title','uid','created'));
         $query->fields('b', array('body_value'));
         $query->fields('m', array('field_user_name_value'));
+        $query->addField('pm', 'field_page_menu_target_id', 'page_menu');
 //        $query->fields('u', array('name'));
         if(isset($id_type) && $id_type == 1 && isset($id)) {
           $query->condition('n.nid', $id, "=");

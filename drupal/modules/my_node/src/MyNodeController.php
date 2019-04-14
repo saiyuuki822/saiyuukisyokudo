@@ -20,18 +20,18 @@ class MyNodeController  extends ControllerBase {
     }
     
     foreach($result as $id => $data) {
-        $node = node_load($data["nid"]);
-        $user = user_load($data["uid"]);
-        if(isset($user->user_picture->entity)) {
-            $result[$id]["picture"] = file_create_url($user->user_picture->entity->getFileUri());
+      $node = node_load($data["nid"]);
+      $user = user_load($data["uid"]);
+      if(isset($user->user_picture->entity)) {
+        $result[$id]["picture"] = file_create_url($user->user_picture->entity->getFileUri());
+      }
+      if(isset($node->field_image)) {
+        foreach($node->field_image as $image) {
+          if($image->entity) {
+            $result[$id]["image"][] = $image->entity->url();
+          }
         }
-        if(isset($node->field_image)) {
-            foreach($node->field_image as $image) {
-                if($image->entity) {
-                    $result[$id]["image"][] = $image->entity->url();
-                }
-            }
-        }
+      }
     }
     header("Content-Type: application/json; charset=utf-8");
     echo (json_encode($result, true));
@@ -56,7 +56,11 @@ class MyNodeController  extends ControllerBase {
         }
     }
     header("Content-Type: application/json; charset=utf-8");
-    echo (json_encode($result, true));
+    if(isset($nid)) {
+      echo (json_encode($result, true));
+    } else {
+      echo (json_encode($result[0], true));
+    }
     exit(1);
   }
   
@@ -106,6 +110,7 @@ class MyNodeController  extends ControllerBase {
     $title = $request->query->get('title');
     $body = $request->query->get('body');
     $type = $request->query->get('type');
+    $navigation = $request->query->get('navigation');
     $image = $request->query->get('image');
     $image_data = file_get_contents($image);
     $file = file_save_data($image_data, "public://". basename($image).".jpg", FILE_EXISTS_REPLACE);
@@ -113,6 +118,7 @@ class MyNodeController  extends ControllerBase {
         'type' => 'article',
         'title' => $title,
         'body'  =>  $body,
+        'field_page_menu' => $navigation,
         'field_image' => [
           'target_id' => $file->id(),
           'alt' => 'Image',
@@ -143,6 +149,23 @@ class MyNodeController  extends ControllerBase {
     $file = file_save_data($image_data, "public://". basename($image).".jpg", FILE_EXISTS_REPLACE);
     $file_url = file_create_url("public://". basename($image).".jpg");
     echo (json_encode(array('file_url' => $file_url), true));
+    exit(1);
+  }
+  
+  public function aaa(Request $request) {  
+    $nid = $request->query->get('nid');
+    $node = node_load($nid);
+    $node->title = $request->query->get('title');
+    $node->body = $request->query->get('body');
+    $node->field_page_menu = $request->query->get('navigation');
+    $image = $request->query->get('image');
+    if(isset($image) && strlen($image)) {
+     $image_data = file_get_contents($image); 
+     $file = file_save_data($image_data, "public://". basename($image).".jpg", FILE_EXISTS_REPLACE);
+     $node->field_image = $file->id();
+    }
+    $result = $node->save();
+    echo (json_encode(array('result' => $result), true));
     exit(1);
   }
 }

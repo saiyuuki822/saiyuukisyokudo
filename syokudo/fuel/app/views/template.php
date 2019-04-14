@@ -17,6 +17,7 @@
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,600' rel='stylesheet' type='text/css'>
     <link href="assets/css/toolkit.css" rel="stylesheet">
     <link href="assets/css/application.css" rel="stylesheet">
+    <link href="assets/css/sweetalert.css" rel="stylesheet">
 
     <style>
       /* note: this is a hack for ios iframe for bootstrap themes shopify page */
@@ -27,7 +28,9 @@
         *width: 100%;
       }
     </style>
+    <script src="/js/sweetalert.js"></script>
     <script src="/js/post.js"></script>
+    
   </head>
 
 
@@ -384,6 +387,18 @@
                 <textarea id="post_body" name="post_body" rows="4" cols="40" placeholder="Body" style="width: 100%;" class="form-control"></textarea>
               </div>
             </li>
+            <?php $navigation = Session::get('navigation');?>
+            <li class="list-group-item">
+              <div class="media">
+                 <select id="naigation" name="navigation" class="form-control">
+                   <option value='' disabled selected style='display:none;'>投稿するメニューを選択してください</option>
+                 <?php foreach($navigation as $key => $value):?>
+                   <option value="<?php echo $value['menu_id'];?>"><?php echo $value['menu_name'];?></option>
+                 <?php endforeach; ?>
+                 </select>
+                 
+              </div>
+            </li>
             <li class="list-group-item">
               <div class="media">
                  <input type="file" name="post_file" class="form-control" placeholder="アイキャッチ画像"/>
@@ -398,6 +413,7 @@
                 </div>
               </div>
             </li>
+            <input type="hidden" id="edit_nid" name="edit_nid" />
             </form>
           </ul>
         </div>
@@ -542,7 +558,7 @@
           <div class="input-group">
             <input type="text" class="form-control" placeholder="Message">
             <div class="input-group-btn">
-              <a href="#postModal" class="text-inherit" data-toggle="modal"><button type="button" class="btn btn-default">
+              <a href="#" class="text-inherit" data-toggle="modal"><button type="button" class="btn btn-default" onClick="node_regist(this);">
                 <span class="icon icon-camera"></span>
               </button></a>
             </div>

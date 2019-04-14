@@ -86,4 +86,12 @@ my_node11:
   requirements:
     _permission: 'access content'
     
+my_node12:
+  path: '/api/aaa'
+  defaults:
+    _title: 'API Node Edit'
+    _controller: '\Drupal\my_node\MyNodeController::aaa'
+  requirements:
+    _permission: 'access content'
+    
 
