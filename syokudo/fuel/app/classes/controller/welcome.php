@@ -65,7 +65,7 @@ class Controller_Welcome extends Controller_My
     $this->template->user = $login_user;
     //$this->template->user_navigation = $navigation;
     $this->template->image = $this->image;
-    $this->template->content = View::forge('welcome/index', ["list" => $node_list, 'image' => $this->image, "comment_list" => $comment_list], false)->auto_filter(false);
+    $this->template->content = View::forge('welcome/index', ["list" => $node_list, 'image' => $this->image, "comment_list" => $comment_list, 'user' => $login_user], false)->auto_filter(false);
     return $this->template;
 	}
 

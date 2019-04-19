@@ -45,7 +45,7 @@ class Model_Node extends \Orm\Model
   }
   
   public function get_node_comment_list() {
-    $sql = 'SELECT comment.entity_id AS nid, comment.uid, body.comment_body_value AS body, user_name.field_user_name_value AS user_name, picture.user_picture_target_id AS picture FROM `comment_field_data` AS comment';
+    $sql = 'SELECT comment.cid,comment.entity_id AS nid, comment.uid, body.comment_body_value AS body, user_name.field_user_name_value AS user_name, picture.user_picture_target_id AS picture FROM `comment_field_data` AS comment';
     $sql .= ' INNER JOIN comment__comment_body body ON comment.cid = body.entity_id';
     $sql .= ' INNER JOIN user__field_user_name user_name ON comment.uid = user_name.entity_id';
     $sql .= ' INNER JOIN user__user_picture picture ON comment.uid = picture.entity_id';
@@ -64,5 +64,90 @@ class Model_Node extends \Orm\Model
     }
     
     return $list;
+  }
+  
+  
+  public function delete_comment($cid) {
+    $sql = "DELETE FROM comment__comment_body WHERE entity_id = ".$cid;
+    $query = DB::query($sql);
+    $result = $query->execute();
+    $sql = "DELETE FROM comment_field_data WHERE cid = ".$cid;
+    $query = DB::query($sql);
+    $result = $query->execute();
+    $sql = "DELETE FROM comment WHERE cid = ".$cid;
+    $query = DB::query($sql);
+    $result = $query->execute();
+    return $result;
+  }
+  
+  /**
+   * 数値型
+   *
+   */
+  public function add_good($nid) {
+    $sql = "UPDATE node__field_good SET field_good_value = field_good_value + 1 WHERE entity_id = ".$nid;
+    $query = DB::query($sql);
+    $result = $query->execute();
+    return $result;
+  }
+  
+  /**
+   * ユーザー参照
+   */
+  public function add_good_user($uid, $nid) {
+    $sql = "INSERT INTO node__field_good_user(entity_id,field_good_user_target_id) VALUES(".$nid.",".$uid.")";
+    $query = DB::query($sql);
+    $result = $query->execute();
+    return $result;
+  }
+
+  /**
+   * ユーザー参照
+   */
+  public function add_ungood_user($uid, $nid) {
+    $sql = "INSERT INTO node__field_ungood_user(entity_id,field_ungood_user_target_id) VALUES(".$nid.",".$uid.")";
+    $query = DB::query($sql);
+    $result = $query->execute();
+    return $result;
+  }
+
+  /**
+   * ユーザー参照
+   */
+  public function delete_good_user($uid, $nid) {
+    $sql = "DELETE FROM node__field_good_user WHERE entity_id = ".$nid. " AND field_good_user_target_id =" .$uid;
+    $query = DB::query($sql);
+    $result = $query->execute();
+    return $result;
+  }
+  
+  /**
+   * ユーザー参照
+   */
+  public function delete_ungood_user($uid, $nid) {
+    $sql = "DELETE FROM node__field_ungood_user WHERE entity_id = ".$nid. " AND field_ungood_user_target_id =" .$uid;
+    $query = DB::query($sql);
+    $result = $query->execute();
+    return $result;
+  }
+  
+  /**
+   * コンテンツ参照
+   */
+  public function add_favorite_node($uid, $nid) {
+    $sql = "INSERT INTO user__field_favorite_node(entity_id,field_favorite_node_target_id) VALUES(".$uid.",".$nid.")";
+    $query = DB::query($sql);
+    $result = $query->execute();
+    return $result;
+  }
+  
+  /**
+   * コンテンツ参照
+   */
+  public function delete_favorite_node($uid, $nid) {
+    $sql = "DELETE FROM user__field_favorite_node WHERE entity_id = ".$uid. " AND field_favorite_node_target_id =" .$nid;
+    $query = DB::query($sql);
+    $result = $query->execute();
+    return $result;
   }
 }

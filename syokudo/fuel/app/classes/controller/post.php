@@ -30,7 +30,6 @@ class Controller_Post extends Controller_My
 	 */
 	public function action_index()
 	{
-    
     if(Input::post()) {
       $title = Input::post('post_title');
       $body  = Input::post('post_body');
@@ -129,6 +128,81 @@ class Controller_Post extends Controller_My
     $this->template->title = 'Example Page';
     $this->template->content = View::forge('login/index', [], false)->auto_filter(false);
     return $this->template;
+  }
+  
+  public function action_good()
+  {
+    if(Input::post() || Input::method() == 'GET' ) {
+      $login_user = Session::get('user');
+      $node = new Model_Node();
+      try {
+        $node->add_good_user($login_user['uid'], Input::post('nid'));
+        $type = 'good';
+      } catch (Exception $e) {
+        $node->delete_good_user($login_user['uid'], Input::post('nid'));
+        $type = 'cancel';
+      }
+      echo json_encode(array('nid' => Input::post('nid'), 'type' => $type), true);
+      exit(1);
+    }
+  }
+  
+  public function action_ungood()
+  {
+    if(Input::post() || Input::method() == 'GET' ) {
+      $login_user = Session::get('user');
+      $node = new Model_Node();
+      try {
+        $node->add_ungood_user($login_user['uid'], Input::post('nid'));
+        $type = 'ungood';
+      } catch (Exception $e) {
+        $node->delete_ungood_user($login_user['uid'], Input::post('nid'));
+        $type = 'cancel';
+      }
+      echo json_encode(array('nid' => Input::post('nid'), 'type' => $type), true);
+      exit(1);
+    }
+  }
+  
+  public function action_favorite_node()
+  {
+    if(Input::post() || Input::method() == 'GET' ) {
+      $login_user = Session::get('user');
+      $node = new Model_Node();
+      try {
+        $node->add_favorite_node($login_user['uid'], Input::post('nid'));
+        $type = 'favorite';
+      } catch (Exception $e) {
+        $node->delete_favorite_node($login_user['uid'], Input::post('nid'));
+        $type = 'cancel';
+      }
+      echo json_encode(array('nid' => Input::post('nid'), 'type' => $type), true);
+      exit(1);
+    }
+  }
+  
+  public function action_comment()
+  {
+    if(Input::post()) {
+      $login_user = Session::get('user');
+      $comment = Input::post('comment');
+      $nid = Input::post('nid');
+      $curl = Request::forge('http://myportal.jpn.com/api/post_comment', 'curl');
+      $curl->set_params(array('nid' => $nid, 'uid' => $login_user['uid'], 'comment' => $comment));
+      $response = $curl->execute()->response();
+      Response::redirect('/', 'refresh', 200);
+      
+    }
+  }
+  
+  public function action_comment_delete() {
+    if(Input::post()) {
+       $cid = Input::post('cid');
+       $node = new Model_Node();
+       $node->delete_comment($cid);
+      echo json_encode(array('cid' => $cid), true);
+      exit(1);
+    }
   }
   
 	/**

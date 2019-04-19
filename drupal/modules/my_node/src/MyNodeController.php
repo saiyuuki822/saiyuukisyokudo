@@ -5,6 +5,7 @@ namespace Drupal\my_node;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\node\NodeInterface;
 use Drupal\node\Entity\Node;
+use Drupal\comment\Entity\Comment;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -165,6 +166,38 @@ class MyNodeController  extends ControllerBase {
      $node->field_image = $file->id();
     }
     $result = $node->save();
+    echo (json_encode(array('result' => $result), true));
+    exit(1);
+  }
+  
+  public function post_comment(Request $request) {
+    $nid = $request->query->get('nid');
+    $uid = $request->query->get('uid');
+    $comment = $request->query->get('comment');
+    $values = [
+
+      // These values are for the entity that you're creating the comment for, not the comment itself.
+      'entity_type' => 'node',            // required.
+      'entity_id'   => $nid,                // required.
+      'field_name'  => 'comment',         // required.
+
+      // The user id of the comment's 'author'. Use 0 for the anonymous user.
+      'uid' => $uid,                         // required.
+
+      // These values are for the comment itself.
+      'comment_type' => 'comment',        // required.
+      'subject' => $comment,  // required.
+      'comment_body' => $comment,            // optional.
+
+      // Whether the comment is 'approved' or not.
+      'status' => 1,                      // optional. Defaults to 0.
+    ];
+ 
+    // This will create an actual comment entity out of our field values.
+    $comment = Comment::create($values);
+ 
+    // Last, we actually need to save the comment to the database.
+    $result = $comment->save();
     echo (json_encode(array('result' => $result), true));
     exit(1);
   }

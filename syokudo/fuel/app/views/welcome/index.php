@@ -49,11 +49,19 @@
               </div>
               <?php endif;?>
             </div>
+            <hr>
+            <div>
+              <div style="float:left;"><a href="#" id="good" data-nid="<?php echo $data["nid"];?>" onClick="good(this);">いいね</a></div><div style="float:left;padding-left:20px;"><a href="#" id="ungood" data-nid="<?php echo $data["nid"];?>" onClick="ungood(this);">だめね</a></div><div style="float:left;padding-left:20px;"><a href="#" id="comment" data-nid="<?php echo $data["nid"];?>">コメント</a></div><div style="float:left;padding-left:20px;"><a href="#" id="favorite" data-nid="<?php echo $data["nid"];?>" onClick="favorite_node(this);">お気に入り</a></div><div style="clear:both;">  </div>
+            </div>
+            <hr>
 
             <?php if(isset($comment_list[$data["nid"]])):?>
             <ul class="media-list m-b">
               <?php foreach($comment_list[$data["nid"]] as $comment_data):?>
-              <li class="media">
+              <li class="media comment">
+                <div style="text-align:right;">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onClick="return comment_delete(this);" data-cid="<?php echo $comment_data["cid"];?>">×</button>
+                </div>
                 <a class="media-left" href="#">
                   <img
                     class="media-obj$ect img-circle"
@@ -65,7 +73,25 @@
                   <?php echo $comment_data['body'];?>
                 </div>
               </li>
+              <hr>
               <?php endforeach;?>
+              <li class="media">
+                <a class="media-left" href="#">
+                  <img
+                    class="media-obj$ect img-circle"
+                    src="<?php echo $image[$user['picture']];?>"
+                    style="max-width:80px;max-height:80px;">
+                </a>
+                <div class="media-body" style="padding-top:10px;">
+                  <form method="post" action="/index.php/post/comment">
+                  <textarea name="comment" style="width:100%;" required></textarea>
+                  <div style="text-align:right;">
+                  <input type="submit" class="btn btn-default btn-sm pull-right" value="コメントする">
+                  <input type="hidden" name="nid" value="<?php echo $data["nid"];?>">
+                  </div>
+                  </form>
+                </div>
+              </li>
               </ul>
               <?php endif;?>
 

@@ -94,4 +94,12 @@ my_node12:
   requirements:
     _permission: 'access content'
     
+my_node13:
+  path: '/api/post_comment'
+  defaults:
+    _title: 'API Comment Post'
+    _controller: '\Drupal\my_node\MyNodeController::post_comment'
+  requirements:
+    _permission: 'access content'
+    
 
