@@ -35,8 +35,11 @@ class Controller_Post extends Controller_My
       $body  = Input::post('post_body');
       $navigation = Input::post('navigation');
       $login_user = Session::get('user');
+      \Log::error("errorログ");
+      \Log::error($login_user["uid"]);
       $file = $_FILES['post_file']['tmp_name'];
       $cfile = new CURLFile($_FILES["post_file"]["tmp_name"],'image/jpeg','test_name');
+      $edit_nid = null;
       if(Input::post('edit_nid')) {
         $edit_nid = Input::post('edit_nid');
       }
@@ -54,6 +57,8 @@ class Controller_Post extends Controller_My
       $curl->set_params(array('title' => $title, 'body' => $body, 'uid' => $login_user['uid'], 'navigation' => $navigation, 'image' => $file, 'nid' => $edit_nid));
       $response = $curl->execute()->response();
       $result = \Format::forge($response->body,'json')->to_array();
+      header("Access-Control-Allow-Origin: *");
+      header("Content-Type: application/json; charset=utf-8");
       echo json_encode(array('title' => $title, 'body' => $body, 'file' => $cfile), true);
       exit(1);
     }
@@ -82,6 +87,8 @@ class Controller_Post extends Controller_My
       $curl->set_params(array('nid' => $nid));
       $response = $curl->execute()->response();
       $result = \Format::forge($response->body,'json')->to_array();
+      header("Access-Control-Allow-Origin: *");
+      header("Content-Type: application/json; charset=utf-8");
       echo json_encode($result, true);
       exit(1);
     }
@@ -111,17 +118,18 @@ class Controller_Post extends Controller_My
   public function action_upload_file()
   {
     if(Input::post()) {
-      $login_user = Session::get('user');
       $file = $_FILES['body_file']['tmp_name'];
       $cfile = new CURLFile($_FILES["body_file"]["tmp_name"],'image/jpeg','test_name');
       $curl = Request::forge('http://myportal.jpn.com/api/upload_file', 'curl');
       $curl->set_option(CURLOPT_RETURNTRANSFER,true);
       $curl->set_option(CURLOPT_BINARYTRANSFER,true);
       $curl->set_header('Content-Type','multipart/form-data');
-      $curl->set_params(array('uid' => $login_user['uid'], 'image' => $file));
+      $curl->set_params(array('image' => $file));
       $response = $curl->execute()->response();
       $result = \Format::forge($response->body,'json')->to_array();
-      echo json_encode(array('uid' => $login_user['uid'], 'file' => $cfile, 'file_url' => $result['file_url']), true);
+      header("Access-Control-Allow-Origin: *");
+      header("Content-Type: application/json; charset=utf-8");
+      echo json_encode(array('file' => $cfile, 'file_url' => $result['file_url']), true);
       exit(1);
     }
     Session::delete('user');
@@ -139,6 +147,7 @@ class Controller_Post extends Controller_My
         $node->add_good_user($login_user['uid'], Input::post('nid'));
         $type = 'good';
       } catch (Exception $e) {
+        \Log::error($e->getMessage());
         $node->delete_good_user($login_user['uid'], Input::post('nid'));
         $type = 'cancel';
       }
@@ -203,6 +212,66 @@ class Controller_Post extends Controller_My
       echo json_encode(array('cid' => $cid), true);
       exit(1);
     }
+  }
+  
+  public function action_get_good_user() {
+    if(Input::post()) {
+      $nid = Input::post('nid');
+      $node = new Model_Node();
+      $good_user = $node->get_good_user($nid, $this->image);
+      echo json_encode(array('good_user' => $good_user), true);
+      exit(1);
+    }
+  }
+  
+  public function action_get_ungood_user() {
+    if(Input::post()) {
+      $nid = Input::post('nid');
+      $node = new Model_Node();
+      $ungood_user = $node->get_ungood_user($nid, $this->image);
+      echo json_encode(array('ungood_user' => $ungood_user), true);
+      exit(1);
+    }
+  }
+
+  public function action_follow()
+  {
+     if(Input::post()) {
+       $login_user = Session::get('user');
+       $user = new Model_User();
+       try {
+         $user->add_follow_user($login_user['uid'], Input::post('uid'));
+         $type = 'follow';
+       } catch (Exception $e) {
+         \Log::error($e->getMessage());
+         $user->delete_follow_user($login_user['uid'], Input::post('uid'));
+         $type = 'cancel';
+      }
+      echo json_encode(array('uid' => Input::post('uid'), 'type' => $type), true);
+      exit(1);
+    }
+  }
+  
+  public function action_user_post()
+  {
+     if(Input::post()) {
+      $name = Input::post('name');
+      $password  = Input::post('password');
+      $mail = Input::post('mail');
+      $user_name = Input::post('user_name');
+      $user_body = Input::post('user_body');
+      $file = $_FILES['picture']['tmp_name'];
+      $cfile = new CURLFile($_FILES["picture"]["tmp_name"],'image/jpeg','picture');
+      $curl = Request::forge('http://myportal.jpn.com/api/user_post', 'curl');
+      $curl->set_option(CURLOPT_RETURNTRANSFER,true); 
+      $curl->set_option(CURLOPT_BINARYTRANSFER,true);
+      $curl->set_header('Content-Type','multipart/form-data');
+      $curl->set_params(array('name' => $name, 'user_name' => $user_name, 'user_body' => $user_body, 'mail' => $mail, 'password' => $password, 'picture' => $file));
+      $response = $curl->execute()->response();
+      $result = \Format::forge($response->body,'json')->to_array();
+      echo json_encode(array('name' => $name, 'user_body' => $user_body, 'mail' => $mail, 'password' => $password, 'picture' => $file), true);
+      exit(1);
+     }
   }
   
 	/**

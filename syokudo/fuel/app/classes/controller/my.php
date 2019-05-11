@@ -33,6 +33,7 @@ class Controller_My extends Controller_Template
         $curl = Request::forge('http://myportal.jpn.com/api/file', 'curl');
         $response = $curl->execute()->response();
         $this->image = \Format::forge($response->body,'json')->to_array();
+        $this->image[0] = '/assets/img/anonymous_user.jpeg';
         
       
         parent::before();

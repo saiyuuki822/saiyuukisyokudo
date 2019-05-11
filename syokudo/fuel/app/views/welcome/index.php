@@ -49,10 +49,35 @@
               </div>
               <?php endif;?>
             </div>
+            
+            <?php if($user['uid'] != 0):?>
             <hr>
             <div>
-              <div style="float:left;"><a href="#" id="good" data-nid="<?php echo $data["nid"];?>" onClick="good(this);">いいね</a></div><div style="float:left;padding-left:20px;"><a href="#" id="ungood" data-nid="<?php echo $data["nid"];?>" onClick="ungood(this);">だめね</a></div><div style="float:left;padding-left:20px;"><a href="#" id="comment" data-nid="<?php echo $data["nid"];?>">コメント</a></div><div style="float:left;padding-left:20px;"><a href="#" id="favorite" data-nid="<?php echo $data["nid"];?>" onClick="favorite_node(this);">お気に入り</a></div><div style="clear:both;">  </div>
+              <div style="float:left;">
+                <a href="#" id="good" data-nid="<?php echo $data["nid"];?>" onClick="good(this);">
+                  <?php $label = ($data["is_good"]) ? '取り消し' : 'いいね';?><?php echo $label;?>
+                </a>
+              </div>
+              <div style="float:left;padding-left:20px;">
+                  <a class="good_num" href="#" onClick="good_user(this);" data-nid="<?php echo $data["nid"];?>" data-toggle="modal"><?php echo $data["good_num"];?>人</a>
+              </div>
+              <div style="float:left;padding-left:20px;">
+                <a href="#" id="ungood" data-nid="<?php echo $data["nid"];?>" onClick="ungood(this);">
+                  <?php $label = ($data["is_good"]) ? '取り消し' : 'だめね';?><?php echo $label;?>
+                </a>
+              </div>
+              <div style="float:left;padding-left:20px;">
+                  <a class="ungood_num" href="#" onClick="ungood_user(this);" data-nid="<?php echo $data["nid"];?>" data-toggle="modal"><?php echo $data["ungood_num"];?>人</a>
+              </div>
+              <!--<div style="float:left;padding-left:20px;"><a href="#" id="comment" data-nid="<?php echo $data["nid"];?>">コメント</a></div>-->
+              <div style="float:left;padding-left:20px;">
+                <a href="#" id="favorite" data-nid="<?php echo $data["nid"];?>" onClick="favorite_node(this);">
+                  <?php $label = ($data["is_favorite"]) ? '取り消し' : 'お気に入り';?><?php echo $label;?>
+                </a>
+              </div>
+              <div style="clear:both;">  </div>
             </div>
+            <?php endif;?>
             <hr>
 
             <?php if(isset($comment_list[$data["nid"]])):?>
@@ -75,6 +100,7 @@
               </li>
               <hr>
               <?php endforeach;?>
+              <?php if($user['uid'] != 0):?>
               <li class="media">
                 <a class="media-left" href="#">
                   <img
@@ -92,6 +118,7 @@
                   </form>
                 </div>
               </li>
+              <?php endif;?>
               </ul>
               <?php endif;?>
 

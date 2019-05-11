@@ -1,4 +1,0 @@
-administer autopost facebook:
-  title: 'Administer Autopost Facebook'
-  description: 'Allow to administer Autopost Facebook settings'
-  restrict access: TRUE

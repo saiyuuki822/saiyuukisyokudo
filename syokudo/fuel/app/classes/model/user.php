@@ -59,5 +59,19 @@ class Model_User extends \Orm\Model
     $result = $query->execute()->as_array();
     return $result;
   } 
+  
+  public function add_follow_user($current_uid, $follow_uid) {
+    $sql = "INSERT INTO user__field_user_follow(delta,entity_id,field_user_follow_target_id) VALUES(".$follow_uid.",".$current_uid.",".$follow_uid.")";
+    $query = DB::query($sql);
+    $result = $query->execute();
+    return $result;
+  }
+  
+  public function delete_follow_user($current_uid, $follow_uid) {
+    $sql = "DELETE FROM user__field_user_follow WHERE entity_id = ".$current_uid. " AND field_user_follow_target_id =" .$follow_uid;
+    $query = DB::query($sql);
+    $result = $query->execute();
+    return $result;
+  }
 
 }

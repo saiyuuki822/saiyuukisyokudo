@@ -102,4 +102,12 @@ my_node13:
   requirements:
     _permission: 'access content'
     
+my_node14:
+  path: '/api/user_post'
+  defaults:
+    _title: 'API User Post'
+    _controller: '\Drupal\my_node\MyNodeController::user_post'
+  requirements:
+    _permission: 'access content'
+    
 

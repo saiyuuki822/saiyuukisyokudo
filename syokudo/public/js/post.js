@@ -163,8 +163,10 @@ function good(event) {
               text: "いいねしました。",
               imageUrl: '/assets/img/thumbs-up.jpg'
             });
+            $(event).html('取り消し');
           } else {
             swal("Cancelled", "いいねを取り消しました。", "error");
+            $(event).html('いいね');
           }
         },
         error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -190,8 +192,10 @@ function ungood(event) {
               text: "だめねしました。",
               imageUrl: '/assets/img/thumbs-but.jpg'
             });
+            $(event).html('取り消し');
           } else {
             swal("Cancelled", "だめねを取り消しました。", "error");
+            $(event).html('だめね');
           }
         },
         error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -217,8 +221,10 @@ function favorite_node(event) {
               text: "お気に入りに入れました。",
               imageUrl: '/assets/img/favorite.jpg'
             });
+            $(event).html('取り消し');
           } else {
             swal("Cancelled", "お気に入りを取り消しました。", "error");
+            $(event).html('お気に入り');
           }
         },
         error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -226,3 +232,120 @@ function favorite_node(event) {
         }
     });
 } 
+
+function good_user(event) {
+   var nid = $(event).data('nid');
+   $.ajax(
+     '/index.php/post/get_good_user',
+     {
+       type: 'post',
+       data: {"nid":nid},
+       dataType: "json",
+       success: function(data) {
+         $('.js-user-list').html('');
+         console.log(data);
+         $.each(data.good_user,
+           function(key, value) {
+             $('#tmp-user-list .user_name').html(value.user_name);
+             $('#tmp-user-list .user_body').html(value.user_body);
+             $('#tmp-user-list a img').attr('src', value.picture);
+             $('#tmp-user-list .media-body .follow').attr('data-uid', value.uid);
+             $('.js-user-list').append($('#tmp-user-list').prop('outerHTML'));
+             $('.js-user-list').children('li:last-child').show();
+             $('.js-user-list').children('li:last-child').attr('id', '');
+           });
+         $('#userModal').modal('show');
+         
+       }  
+     });
+  return false;
+}
+
+function ungood_user(event) {
+   var nid = $(event).data('nid');
+   $.ajax(
+     '/index.php/post/get_ungood_user',
+     {
+       type: 'post',
+       data: {"nid":nid},
+       dataType: "json",
+       success: function(data) {
+         $('.js-user-list').html('');
+         console.log(data);
+         $.each(data.ungood_user,
+           function(key, value) {
+             $('#tmp-user-list .user_name').html(value.user_name);
+             $('#tmp-user-list .user_body').html(value.user_body);
+             $('#tmp-user-list a img').attr('src', value.picture);
+             $('.js-user-list').append($('#tmp-user-list').prop('outerHTML'));
+             $('.js-user-list').children('li:last-child').show();
+           });
+         $('#userModal').modal('show');
+       }  
+     });
+  return false;
+}
+
+function follow(event) {
+  var uid = $(event).data('uid');
+  $('.loding-area').show();
+    $.ajax(
+        '/index.php/post/follow',
+        {
+        type: 'post',
+        data: {"uid":uid},
+        dataType: "json",
+        success: function(data) {
+          $('.loding-area').hide();
+          if(data.type == 'follow') {
+            swal({
+              title: "Follow!",
+              text: "フォローしました。",
+              imageUrl: '/assets/img/follow.jpg'
+            });
+            $(event).html('取り消し');
+          } else {
+            swal("Cancelled", "フォローを取り消しました。", "error");
+            $(event).html('Follow');
+          }
+        },
+        error: function(XMLHttpRequest, textStatus, errorThrown) {
+          $('.loding-area').hide();
+        }
+    });
+
+  return false;
+}
+
+function regist(event) {
+  $('#registModal').modal('show');
+}
+
+function user_post(event) {
+  if($("[name=password]").val() != $("[name=repassword]").val()) {
+    swal("But Password", "パスワードとパスワードの確認が違います。", "error");
+  }
+  $('.loding-area').show();
+  $form = $('#user_regist-form');
+  fd = new FormData($form[0]);
+  $('.loding-area').show();
+  $.ajax(
+      '/index.php/post/user_post',
+      {
+      type: 'post',
+      processData: false,
+      contentType: false,
+      data: fd,
+      dataType: "json",
+      success: function(data) {
+          alert('success');
+          $('.loding-area').hide();
+          location.href="/index.php/login";
+      },
+      error: function(XMLHttpRequest, textStatus, errorThrown) {
+          $('.loding-area').hide();
+          location.href="/";
+      }
+  });
+  return false;
+}

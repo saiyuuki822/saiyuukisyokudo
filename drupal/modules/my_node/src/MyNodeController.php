@@ -13,11 +13,11 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class MyNodeController  extends ControllerBase {
   public function node_list($tid) {
-    $node = new NodeModel();
+    $nodeModel = new NodeModel();
     if($tid == 'all') {
-      $result = json_decode(json_encode($node->get_node_list()), true);
+      $result = json_decode(json_encode($nodeModel->get_node_list()), true);
     } else if(is_numeric($tid)) {
-      $result = json_decode(json_encode($node->get_node_list(2, $tid)), true);
+      $result = json_decode(json_encode($nodeModel->get_node_list(2, $tid)), true);
     }
     
     foreach($result as $id => $data) {
@@ -33,7 +33,24 @@ class MyNodeController  extends ControllerBase {
           }
         }
       }
+      $body_value = strip_tags($result[$id]["body_value"]);
+      if(mb_strlen($body_value) >= 300) {
+        $body_value = mb_substr($body_value, 0, 300). "...";
+      }
+      $result[$id]["body_value"] = $body_value;
+      $result[$id]["created"] = $result[$id]["created"];
+      $comment = $nodeModel->get_comment_list($data["nid"]);
+      //foreach($comment as $key => $value2) {
+        //$comment[$key]["created2"] = 123456789;
+        //$comment[$key]["picture"] = file_create_url(file_load($value["picture"])->uri);
+      
+      $result[$id]["comment"] = $comment;
+      foreach($result[$id]["comment"] as $key => $value2) {
+        $result[$id]["comment"][$key] = $value2;
+        //$result[$id]["comment"][$key]["created"] = "aaa";
+      }
     }
+    header("Access-Control-Allow-Origin: *");
     header("Content-Type: application/json; charset=utf-8");
     echo (json_encode($result, true));
     exit(1);
@@ -144,7 +161,6 @@ class MyNodeController  extends ControllerBase {
   }
   
   public function upload_file(Request $request) {
-    $uid = $request->query->get('uid');
     $image = $request->query->get('image');
     $image_data = file_get_contents($image);
     $file = file_save_data($image_data, "public://". basename($image).".jpg", FILE_EXISTS_REPLACE);
@@ -199,6 +215,29 @@ class MyNodeController  extends ControllerBase {
     // Last, we actually need to save the comment to the database.
     $result = $comment->save();
     echo (json_encode(array('result' => $result), true));
+    exit(1);
+  }
+  
+  public function user_post(Request $request) {
+    $picture = $request->query->get('picture');
+
+    $values = array(
+      'field_user_name' => $request->query->get('user_name'),
+      'field_user_body' => $request->query->get('user_body'),
+      'name' => $request->query->get('name'),
+      'mail' => $request->query->get('mail'),
+      'roles' => array(),
+      'pass' => $request->query->get('password'),
+      'status' => 1,
+    );
+    if(isset($picture)) {
+      $image_data = file_get_contents($picture);
+      $file = file_save_data($image_data, "public://". basename($picture).".jpg", FILE_EXISTS_REPLACE);
+      $values['user_picture'] = array('target_id' => $file->id());
+    }
+    $account = entity_create('user', $values);
+    $account->save();
+    echo (json_encode(array('result' => $values), true));
     exit(1);
   }
 }

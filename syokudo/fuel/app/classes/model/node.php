@@ -94,13 +94,74 @@ class Model_Node extends \Orm\Model
   /**
    * ユーザー参照
    */
+  public function get_good_user($nid, $image) {
+    $sql = "SELECT g.entity_id AS nid, g.field_good_user_target_id AS uid,user_name.field_user_name_value AS user_name,user_site_url.field_user_site_url_value AS user_site_url,user_body.field_user_body_value AS user_body,picture.user_picture_target_id AS picture FROM node__field_good_user g";
+    $sql .= ' INNER JOIN user__user_picture picture ON g.field_good_user_target_id = picture.entity_id';
+    $sql .= ' INNER JOIN user__field_user_name user_name ON g.field_good_user_target_id = user_name.entity_id';
+    $sql .= ' INNER JOIN user__field_user_body user_body ON g.field_good_user_target_id = user_body.entity_id';
+    $sql .= ' INNER JOIN user__field_user_site_url user_site_url ON g.field_good_user_target_id = user_site_url.entity_id';
+    $sql .= ' WHERE g.entity_id = '. $nid;
+    $query = DB::query($sql);
+    $result = $query->execute()->as_array();
+    foreach($result as $key => $value) {
+      if(mb_strlen($result[$key]['user_body']) >= 50) {
+        $result[$key]['user_body'] = mb_substr($value['user_body'], 0, 30). "...";
+      }
+      $result[$key]['picture'] = $image[$value['picture']];
+    }
+    return $result;
+  }
+  
+  /**
+   * ユーザー参照
+   */
+  public function get_ungood_user($nid, $image) {
+    $sql = "SELECT g.entity_id AS nid, g.field_ungood_user_target_id AS uid,user_name.field_user_name_value AS user_name,user_site_url.field_user_site_url_value AS user_site_url,user_body.field_user_body_value AS user_body,picture.user_picture_target_id AS picture FROM node__field_ungood_user g";
+    $sql .= ' INNER JOIN user__user_picture picture ON g.field_ungood_user_target_id = picture.entity_id';
+    $sql .= ' INNER JOIN user__field_user_name user_name ON g.field_ungood_user_target_id = user_name.entity_id';
+    $sql .= ' INNER JOIN user__field_user_body user_body ON g.field_ungood_user_target_id = user_body.entity_id';
+    $sql .= ' INNER JOIN user__field_user_site_url user_site_url ON g.field_ungood_user_target_id = user_site_url.entity_id';
+    $sql .= ' WHERE g.entity_id = '. $nid;
+    $query = DB::query($sql);
+    $result = $query->execute()->as_array();
+    foreach($result as $key => $value) {
+      $result[$key]['picture'] = $image[$value['picture']];
+    }
+    return $result;
+  }
+  
+  public function get_good_user_data($nid, $uid=null) {
+    $sql = "SELECT g.entity_id AS nid, field_good_user_target_id AS uid FROM node__field_good_user g";
+    $sql .= ' WHERE g.entity_id = '. $nid;
+    if(isset($uid)) {
+      $sql .= ' AND g.field_good_user_target_id = '. $uid;
+    }
+    $query = DB::query($sql);
+    $result = $query->execute()->as_array();
+    return $result;
+  }
+  
+  /**
+   * ユーザー参照
+   */
   public function add_good_user($uid, $nid) {
-    $sql = "INSERT INTO node__field_good_user(entity_id,field_good_user_target_id) VALUES(".$nid.",".$uid.")";
+    $sql = "INSERT INTO node__field_good_user(delta,entity_id,field_good_user_target_id) VALUES(".$uid.",".$nid.",".$uid.")";
     $query = DB::query($sql);
     $result = $query->execute();
     return $result;
   }
 
+    public function get_ungood_user_data($nid, $uid=null) {
+    $sql = "SELECT g.entity_id AS nid, field_ungood_user_target_id AS uid FROM node__field_ungood_user g";
+    $sql .= ' WHERE g.entity_id = '. $nid;
+    if(isset($uid)) {
+      $sql .= ' AND g.field_ungood_user_target_id = '. $uid;
+    }
+    $query = DB::query($sql);
+    $result = $query->execute()->as_array();
+    return $result;
+  }
+  
   /**
    * ユーザー参照
    */
@@ -131,6 +192,18 @@ class Model_Node extends \Orm\Model
     return $result;
   }
   
+  
+  public function get_good_favorite_node($uid, $nid=null) {
+    $sql = "SELECT f.entity_id AS nid, f.field_favorite_node_target_id AS uid FROM user__field_favorite_node f";
+    $sql .= ' WHERE f.entity_id = '. $uid;
+    if(isset($nid)) {
+      $sql .= ' AND f.field_favorite_node_target_id = '. $nid;
+    }
+    $query = DB::query($sql);
+    $result = $query->execute()->as_array();
+    return $result;
+  }
+
   /**
    * コンテンツ参照
    */

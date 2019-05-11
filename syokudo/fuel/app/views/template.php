@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" prefix="og: http://ogp.me/ns#">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,12 +7,9 @@
     <meta name="description" content="">
     <meta name="keywords" content="">
     <meta name="author" content="">
+    <meta property="og:image" content="http://syokudo.myportal.jpn.com/assets/img/ld_icon.gif" />
 
-    <title>
-      
-        Home &middot; 
-      
-    </title>
+    <title>Home &middot; </title>
 
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,600' rel='stylesheet' type='text/css'>
     <link href="assets/css/toolkit.css" rel="stylesheet">
@@ -28,6 +25,7 @@
         *width: 100%;
       }
     </style>
+    <script src="/assets/js/bootstrap.min.js"></script>
     <script src="/js/sweetalert.js"></script>
     <script src="/js/post.js"></script>
     
@@ -37,10 +35,8 @@
 <body class="with-top-navbar">
 
   <div class="loding-area" style="display:none;z-index:999;position:absolute;left:50%;top:50%"><img src="/assets/img/ld_icon.gif"></div> 
-
-<div class="growl" id="app-growl"></div>
-
-<nav class="navbar navbar-inverse navbar-fixed-top app-navbar">
+  <div class="growl" id="app-growl"></div>
+  <nav class="navbar navbar-inverse navbar-fixed-top app-navbar">
   <div class="container">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-main">
@@ -54,56 +50,51 @@
       </a>
     </div>
     <div class="navbar-collapse collapse" id="navbar-collapse-main">
-
-        <ul class="nav navbar-nav hidden-xs">
-          <li class="active">
-            <a href="index.html">Home!!</a>
-          </li>
-          <li>
-            <a href="profile/index.html">Profile</a>
-          </li>
-          <li>
-            <a data-toggle="modal" href="#msgModal">Messages</a>
-          </li>
-          <li>
-            <a href="docs/index.html">Docs</a>
-          </li>
-        </ul>
-
-        <ul class="nav navbar-nav navbar-right m-r-0 hidden-xs">
-          <li >
-            <a class="app-notifications" href="notifications/index.html">
-              <span class="icon icon-bell"></span>
-            </a>
-          </li>
-          <li>
-            <button class="btn btn-default navbar-btn navbar-btn-avitar" data-toggle="popover">
-              <img class="img-circle" src="<?php echo $image[$user['picture']];?>">
-            </button>
-          </li>
-        </ul>
-
-        <form class="navbar-form navbar-right app-search" role="search">
-          <div class="form-group">
-            <input type="text" class="form-control" data-action="grow" placeholder="Search">
-          </div>
-        </form>
-
-        <ul class="nav navbar-nav hidden-sm hidden-md hidden-lg">
-          <li><a href="index.html">Home</a></li>
-          <li><a href="profile/index.html">Profile</a></li>
-          <li><a href="notifications/index.html">Notifications</a></li>
-          <li><a data-toggle="modal" href="#msgModal">Messages</a></li>
-          <li><a href="docs/index.html">Docs</a></li>
-          <li><a href="#" data-action="growl">Growl</a></li>
-          <li><a href="login/index.html">Logout</a></li>
-        </ul>
-
-        <ul class="nav navbar-nav hidden">
-          <li><a href="#" data-action="growl">Growl</a></li>
-          <li><a href="/index.php/login">Logout</a></li>
-        </ul>
-      </div>
+      <ul class="nav navbar-nav hidden-xs">
+        <li class="active">
+          <a href="/">Home!!</a>
+        </li>
+        <li>
+          <a href="profile/index.html">Profile</a>
+        </li>
+        <li>
+          <a data-toggle="modal" href="#msgModal">Messages</a>
+        </li>
+        <li>
+          <a href="docs/index.html">Docs</a>
+        </li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right m-r-0 hidden-xs">
+        <li >
+          <a class="app-notifications" href="notifications/index.html">
+            <span class="icon icon-bell"></span>
+          </a>
+        </li>
+        <li>
+          <button class="btn btn-default navbar-btn navbar-btn-avitar" data-toggle="popover">
+            <img class="img-circle" src="<?php echo $image[$user['picture']];?>">
+          </button>
+        </li>
+      </ul>
+      <form class="navbar-form navbar-right app-search" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" data-action="grow" placeholder="Search">
+        </div>
+      </form>
+      <ul class="nav navbar-nav hidden-sm hidden-md hidden-lg">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="profile/index.html">Profile</a></li>
+        <li><a href="notifications/index.html">Notifications</a></li>
+        <li><a data-toggle="modal" href="#msgModal">Messages</a></li>
+        <li><a href="docs/index.html">Docs</a></li>
+        <li><a href="#" data-action="growl">Growl</a></li>
+        <li><a href="login/index.html">Logout</a></li>
+      </ul>
+      <ul class="nav navbar-nav hidden">
+        <li><a href="#" data-action="growl">Growl</a></li>
+        <li><a href="/index.php/login">Logout</a></li>
+      </ul>
+    </div>
   </div>
 </nav>
 
@@ -361,14 +352,96 @@
   </div>
 </div>
 
-<div class="modal fade" id="postModal" tabindex="-1" role="dialog" aria-labelledby="userModal" aria-hidden="true">
+  
+  
+  
+  
+  
+  
+  
+  
+  <div class="modal fade" id="registModal" tabindex="-1" role="dialog" aria-labelledby="registModal" aria-hidden="true">
+  <div class="modal-dialog" style="width:50%;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">ユーザー登録</h4>
+      </div>
+
+      <div class="modal-body p-a-0">
+        <div class="modal-body-scroller">
+          <ul class="media-list media-list-users list-group">
+            <form id="user_regist-form" method="post" enctype="multipart/form-data">
+             <li class="list-group-item">
+              <div class="media">
+                <input type="text" name="name" placeholder="ユーザーID" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+             <li class="list-group-item">
+              <div class="media">
+                <input type="text" name="mail" placeholder="メールアドレス" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <input type="password" name="password" placeholder="パスワード" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <input type="password" name="repassword" placeholder="パスワードの確認" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <input type="text" name="user_name" placeholder="ユーザー名" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                 <input type="file" name="picture" class="form-control" placeholder="アイキャッチ画像"/>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <textarea id="user_body" name="user_body" rows="4" cols="40" placeholder="自己紹介" style="width: 100%;" class="form-control"></textarea>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <div class="media-body">
+                  <button class="btn btn-default btn-sm pull-right close" data-dismiss="modal" onClick="return user_post(this);">
+                    <span class="glyphicon glyphicon-user"></span> 登録
+                  </button>
+                </div>
+              </div>
+            </li>
+            <input type="hidden" id="edit_nid" name="edit_nid" />
+            </form>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+<div class="modal fade" id="postModal" tabindex="-1" role="dialog" aria-labelledby="postModal" aria-hidden="true">
   <div class="modal-dialog" style="width:50%;">
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h4 class="modal-title">Post</h4>
       </div>
-
       <div class="modal-body p-a-0">
         <div class="modal-body-scroller">
           <ul class="media-list media-list-users list-group">
@@ -396,7 +469,6 @@
                    <option value="<?php echo $value['menu_id'];?>"><?php echo $value['menu_name'];?></option>
                  <?php endforeach; ?>
                  </select>
-                 
               </div>
             </li>
             <li class="list-group-item">
@@ -432,21 +504,21 @@
 
       <div class="modal-body p-a-0">
         <div class="modal-body-scroller">
-          <ul class="media-list media-list-users list-group">
-            <li class="list-group-item">
-              <div class="media">
-                <a class="media-left" href="#">
-                  <img class="media-object img-circle" src="assets/img/avatar-fat.jpg">
-                </a>
-                <div class="media-body">
-                  <button class="btn btn-default btn-sm pull-right">
-                    <span class="glyphicon glyphicon-user"></span> Follow
-                  </button>
-                  <strong>Jacob Thornton!!!!!!!!!!!!!!</strong>
-                  <p>@fat - San Francisco</p>
-                </div>
+          <li id="tmp-user-list" class="list-group-item" style="display:none;">
+            <div class="media">
+              <a class="media-left" href="#">
+                <img class="media-object img-circle picture" src="assets/img/avatar-fat.jpg">
+              </a>
+              <div class="media-body">
+                <button class="btn btn-default btn-sm pull-right follow" onClick="follow(this);">
+                  <span class="glyphicon glyphicon-user"></span> Follow
+                </button>
+                <strong class="user_name">Jacob Thornton!!!!!!!!!!!!!!</strong>
+                <p class="user_body">@fat - San Francisco</p>
               </div>
-            </li>
+            </div>
+          </li>
+          <ul class="media-list media-list-users list-group js-user-list">
             <li class="list-group-item">
               <div class="media">
                 <a class="media-left" href="#">
@@ -496,10 +568,14 @@
           </a>
 
           <h5 class="panel-title">
-            <a class="text-inherit" href="profile/index.html"></a>
+            <a class="text-inherit" href="profile/index.html"><?php echo $user['user_name'];?></a>
           </h5>
 
+          <?php if($user["uid"] != 0):?>
           <p class="m-b-md"><?php echo $user['user_body'];?></p>
+          <?php else: ?>
+          <a href="#"> <button class="btn btn-success-outline" data-dismiss="modal" onClick="return regist(this)">新規ユーザー登録</button><br></a>
+          <?php endif;?>
 
           <ul class="panel-menu">
             <li class="panel-menu-item">

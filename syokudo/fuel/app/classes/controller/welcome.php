@@ -28,27 +28,46 @@ class Controller_Welcome extends Controller_My
 	 * @return  Response
 	 */
 	public function action_index()
-	{
-    
-
-    //$query = DB::query('SELECT * FROM `users`');
-    // 返り値: Database_MySQLi_Result オブジェクト
-    //$result = $query->execute()->as_array();
-    //array('select' => array('id', 'name'))
-    //$user = Model_User::find(29, array('select'=> array('uid', 'uuid','t1.field_user_name_value'), 'related' => array('user_name')));
-    //$user = Model_User::query()->related('user_name')->get();
-    
+	{ 
     $user = new Model_User();
     $node = new Model_Node();
     
-    $node_list = $node->get_node();
-    
-    $comment_list = $node->get_node_comment_list();
-
     $login_user = Session::get('user');
-    $follow = $user->get_user_follow($login_user['uid']);
-    $favorite_url = $user->get_user_favorite_url($login_user['uid']);
-    if(isset($login_user['uid'])) {
+    
+    if(!isset($login_user)) {
+      $login_user['uid'] = 0;
+    }
+    
+    $node_list = $node->get_node();
+    foreach($node_list as $key => $value) {
+      $good_user = $node->get_good_user_data($value['nid']);
+      
+      $node_list[$key]["good_num"] = count($good_user);
+      if(count($good_user) >= 1) {
+        $node_list[$key]["is_good"] = true;
+      } else {
+        $node_list[$key]["is_good"] = false;
+      }
+      $ungood_user = $node->get_ungood_user_data($value['nid']);
+      
+      $node_list[$key]["ungood_num"] = count($ungood_user);
+      if(count($good_user) >= 1) {
+        $node_list[$key]["is_ungood"] = true;
+      } else {
+        $node_list[$key]["is_ungood"] = false;
+      }
+      $favorite_node = $node->get_good_favorite_node($login_user['uid'], $value['nid']);
+      if(count($favorite_node) >= 1) {
+        $node_list[$key]["is_favorite"] = true;
+      } else {
+        $node_list[$key]["is_favorite"] = false;
+      }
+    }
+
+    $comment_list = $node->get_node_comment_list();
+    if($login_user['uid'] != 0) {
+      $follow = $user->get_user_follow($login_user['uid']);
+      $favorite_url = $user->get_user_favorite_url($login_user['uid']);
       // メインナビゲーションを取得
       $curl = Request::forge('http://myportal.jpn.com/api/navigation/'.$login_user['uid'], 'curl');
       $response = $curl->execute()->response();
@@ -56,7 +75,14 @@ class Controller_Welcome extends Controller_My
       $navigation = $list;
       Session::set('navigation', $navigation);
     } else {
-      Response::redirect('/index.php/login', 'refresh', 200);
+      //Response::redirect('/index.php/login', 'refresh', 200);
+      $follow = array();
+      $favorite_url = array();
+      $login_user['user_name'] = "AnonymousUser";
+      $login_user['picture'] = 0;
+      $login_user['user_body'] = '';
+      $navigation = array();
+      Session::set('navigation', $navigation);
     }
 
     $login_user['follow'] = $follow;

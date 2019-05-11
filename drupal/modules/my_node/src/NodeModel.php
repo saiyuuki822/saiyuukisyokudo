@@ -32,6 +32,32 @@ class NodeModel {
         return $result;
     }
   
+    public function get_comment_list($nid) {
+    //$sql = 'SELECT comment.cid,comment.entity_id AS nid, comment.uid, body.comment_body_value AS body, user_name.field_user_name_value AS user_name, picture.user_picture_target_id AS picture FROM `comment_field_data` AS comment';
+    //$sql .= ' INNER JOIN comment__comment_body body ON comment.cid = body.entity_id';
+    //$sql .= ' INNER JOIN user__field_user_name user_name ON comment.uid = user_name.entity_id';
+    //$sql .= ' INNER JOIN user__user_picture picture ON comment.uid = picture.entity_id';
+    //$sql .= ' ORDER BY comment.cid ASC';
+      $query = db_select('comment_field_data', 'c');
+      $query->join('comment__comment_body', 'b', 'c.cid = b.entity_id');
+      $query->join('user__field_user_name', 'n', 'c.uid = n.entity_id');
+      $query->join('user__user_picture', 'p', 'c.uid = p.entity_id');
+      $query->fields('c',array('cid'));
+      $query->addField('c', 'entity_id', 'nid');
+      $query->addField('c', 'created');
+      $query->addField('b', 'comment_body_value', 'body');
+      $query->addField('n', 'field_user_name_value', 'user_name');
+      $query->addField('p', 'user_picture_target_id', 'picture');
+      $query->condition('c.entity_id', $nid, "=");
+      $query->orderBy('c.created');
+      $result = $query->execute()->fetchAll();
+      foreach($result as $id => $value) {
+        $result[$id]->created = date('Y/m/d h:i', $value->created);
+      }
+      
+      return $result;
+    }
+  
     public function get_page_data($tid) {
         $query = db_select('node', 'n');
         $query->join('node_field_data', 'f', 'n.nid = f.nid');
