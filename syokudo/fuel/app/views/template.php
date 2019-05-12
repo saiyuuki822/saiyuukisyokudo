@@ -11,7 +11,7 @@
     <meta property="og:image" content="<?php echo $image;?>" />
     <?php else:?>
     <meta property="og:image" content="http://syokudo.myportal.jpn.com/assets/img/ld_icon.gif" />
-    <?php endif;
+    <?php endif;?>
 
     <title>Home &middot; </title>
 
