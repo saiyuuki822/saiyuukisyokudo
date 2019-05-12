@@ -7,11 +7,7 @@
     <meta name="description" content="">
     <meta name="keywords" content="">
     <meta name="author" content="">
-    <?php if(isset($image) && strlen($image)):?>
-    <meta property="og:image" content="<?php echo $image;?>" />
-    <?php else:?>
     <meta property="og:image" content="http://syokudo.myportal.jpn.com/assets/img/ld_icon.gif" />
-    <?php endif;?>
 
     <title>Home &middot; </title>
 
