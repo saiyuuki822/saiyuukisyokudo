@@ -50,6 +50,11 @@ class Controller_Api extends Controller_My
       $list = \Format::forge($response->body,'json')->to_array();
       $login_user["navigation"] = $list;
       $login_user["picture"] = $this->image[$login_user["picture"]];
+      $follow = $user->get_user_follow($login_user['uid']);
+      foreach($follow as $id => $data) {
+        $follow[$id]["picture"] = $this->image[$data["picture"]];
+      }
+      $login_user['follow'] = $follow;
       $user = Session::get('user');
       \Log::error("errorログ");
       \Log::error($user["uid"]);
@@ -57,6 +62,20 @@ class Controller_Api extends Controller_My
       header("Content-Type: application/json; charset=utf-8");
       echo (json_encode($login_user, true));
       exit(1);
+  }
+  
+  public function action_node_list()
+  {
+    $curl = Request::forge('http://myportal.jpn.com/api/node_list/all', 'curl');
+    $response = $curl->execute()->response();
+    $list = \Format::forge($response->body,'json')->to_array();
+    foreach($list as $id => $data) {
+      $list[$id]["created"] = date('Y/m/d h:i', $data["created"]);  
+    }
+    header("Access-Control-Allow-Origin: *");
+    header("Content-Type: application/json; charset=utf-8");
+    echo (json_encode($list, true));
+    exit(1);
   }
   
   public function action_post()
