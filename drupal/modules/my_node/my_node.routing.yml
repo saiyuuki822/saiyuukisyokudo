@@ -1,8 +1,24 @@
 my_node:
-  path: '/api/node_list/{tid}'
+  path: '/api/node_list/{type}/{entity_id}'
   defaults:
     _title: 'API Node'
     _controller: '\Drupal\my_node\MyNodeController::node_list'
+  requirements:
+    _permission: 'access content'
+    
+my_node15:
+  path: '/api/user_list/{uid}'
+  defaults:
+    _title: 'API Node'
+    _controller: '\Drupal\my_node\UserController::user_list'
+  requirements:
+    _permission: 'access content'
+    
+my_node16:
+  path: '/api/node_search/{type}/{entity_id}/{word}'
+  defaults:
+    _title: 'API Node'
+    _controller: '\Drupal\my_node\MyNodeController::node_search'
   requirements:
     _permission: 'access content'
 
@@ -87,10 +103,10 @@ my_node11:
     _permission: 'access content'
     
 my_node12:
-  path: '/api/aaa'
+  path: '/api/node_edit'
   defaults:
     _title: 'API Node Edit'
-    _controller: '\Drupal\my_node\MyNodeController::aaa'
+    _controller: '\Drupal\my_node\MyNodeController::node_edit'
   requirements:
     _permission: 'access content'
     

@@ -10,6 +10,24 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class UserController extends ControllerBase {
 
+  public function user_list($uid) {
+    $userModel = new UserModel();
+    if($uid == 'all') {
+      $result = json_decode(json_encode($userModel->get_user_info()), true);
+    } else if(is_numeric($tid)) {
+      $result = json_decode(json_encode($userModel->get_user_info($uid)), true);
+    }
+    $list = [];
+    foreach($result as $id => $data) {
+      $list[$data["uid"]] = $data;
+    }
+    
+    header("Access-Control-Allow-Origin: *");
+    header("Content-Type: application/json; charset=utf-8");
+    echo (json_encode($list, true));
+    exit(1);
+  }
+  
   public function user_login(Request $request) {
     $uid = \Drupal::service('user.auth')->authenticate($request->get('name'), $request->get('pass'));
     if(!$uid) {
@@ -21,6 +39,10 @@ class UserController extends ControllerBase {
         $result["user"] = $user_data;
         if(isset($user->user_picture->entity)) {
             $result["user"]["picture"] = file_create_url($user->user_picture->entity->getFileUri());
+        }
+        //Statusチェック
+        if($user->status->value == 0) {
+          $result = ["result" => 0];
         }
     }
     header("Content-Type: application/json; charset=utf-8");

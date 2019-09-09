@@ -8,10 +8,18 @@ namespace Drupal\my_node;
  * and open the template in the editor.
  */
 class UserModel {
-    public function get_user_info($uid) {
+    public function get_user_info($uid = null) {
         $query = db_select('users', 'u');
         $query->join('user__field_user_name', 'n', 'u.uid = n.entity_id');
         $query->join('user__field_user_body', 'b', 'u.uid = b.entity_id');
+        $query->join('user__user_picture', 'p', 'u.uid = p.entity_id');
+        $query->fields('u',array('uid'));
+        $query->addField('n', 'field_user_name_value', 'user_name');
+        $query->addField('b', 'field_user_body_value', 'user_body');
+        $query->addField('p', 'user_picture_target_id', 'picture');
+        if(isset($uid)) {
+          $query->condition('u.uid', $uid, "=");
+        }
         $result = $query->execute()->fetchAll();
         return $result;
     }
@@ -48,4 +56,5 @@ class UserModel {
         }
         return $info;
     }
+  
 }

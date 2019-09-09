@@ -7,29 +7,87 @@ namespace Drupal\my_node;
  * and open the template in the editor.
  */
 class NodeModel {
-    public function get_node_list($id_type=null, $id = null) {
+    public function get_node_list($id_type=null, $id = null, $offset = 0, $limit = 10) {
         $query = db_select('node', 'n');
         $query->join('node_field_data', 'f', 'n.nid = f.nid');
         $query->join('node__body', 'b', 'n.nid = b.entity_id');
         $query->join('users', 'u', 'f.uid = u.uid');
         $query->join('user__field_user_name', 'm', 'f.uid = m.entity_id');
+        $query->join('user__field_user_body', 'ub', 'f.uid = ub.entity_id');
         $query->join('node__field_page_menu', 'pm', 'n.nid = pm.entity_id');
+        //$query->leftJoin('paragraphs_item_field_data', 'p', 'n.nid = p.parent_id');
+        //$query->leftJoin('paragraph__field_image', 'pi', 'p.id = pi.entity_id');
+        //$query->leftJoin('paragraph__field_caption', 'pc', 'p.id = pc.entity_id');
+        $query->fields('n', array('nid'));
+        $query->fields('f', array('title','uid','created'));
+        $query->fields('b', array('body_value'));
+        //$query->fields('u', array('name'));
+
+        $query->addField('m', 'field_user_name_value', 'user_name');
+        $query->addField('ub', 'field_user_body_value', 'user_body');
+        $query->addField('pm', 'field_page_menu_target_id', 'page_menu');
+        //$query->addField('pc', 'field_caption_value', 'caption');
+        //$query->addField('pi', 'field_image_target_id', 'field_image');
         
+        if(isset($id_type) && $id_type == 1 && isset($id)) {
+          $query->condition('f.uid', $id, "=");
+        } else if(isset($id_type) && $id_type == 2 && isset($id)) {
+          $query->condition('pm.field_page_menu_target_id', $id, "=");
+        } else if(isset($id_type) && $id_type == 3 && isset($id)) {
+          $query->condition('n.nid', $id, "=");
+        } 
+        $query->condition('n.type', "article", "=");
+        $query->orderBy('nid', 'desc');
+        $query->range($offset, $limit);
+        $result = $query->execute()->fetchAll();
+        return $result;
+    }
+  
+    public function get_node_search($id_type=null, $id = null, $word = null) {
+        $database = \Drupal::database();
+        $query = db_select('node', 'n');
+        $query->join('node_field_data', 'f', 'n.nid = f.nid');
+        $query->join('node__body', 'b', 'n.nid = b.entity_id');
+        $query->join('users', 'u', 'f.uid = u.uid');
+        $query->join('user__field_user_name', 'm', 'f.uid = m.entity_id');
+        $query->join('user__field_user_body', 'ub', 'f.uid = ub.entity_id');
+        $query->join('node__field_page_menu', 'pm', 'n.nid = pm.entity_id');
         $query->fields('n',array('nid'));
         $query->fields('f', array('title','uid','created'));
         $query->fields('b', array('body_value'));
-        $query->fields('m', array('field_user_name_value'));
+        $query->addField('m', 'field_user_name_value', 'user_name');
+        $query->addField('ub', 'field_user_body_value', 'user_body');
         $query->addField('pm', 'field_page_menu_target_id', 'page_menu');
 //        $query->fields('u', array('name'));
         if(isset($id_type) && $id_type == 1 && isset($id)) {
-          $query->condition('n.nid', $id, "=");
+          $query->condition('f.uid', $id, "=");
         } else if(isset($id_type) && $id_type == 2 && isset($id)) {
           $query->condition('pm.field_page_menu_target_id', $id, "=");
-        }
+        } else if(isset($id_type) && $id_type == 3 && isset($id)) {
+          $query->condition('n.nid', $id, "=");
+        } 
         $query->condition('n.type', "article", "=");
-        $query->orderBy('nid');
+        
+        $likeGroup = $query->orConditionGroup()->condition('f.title', "%" . $database->escapeLike($word) . "%", 'LIKE');
+        $likeGroup = $likeGroup->condition('b.body_value', "%" . $database->escapeLike($word) . "%", 'LIKE');
+        $likeGroup = $likeGroup->condition('m.field_user_name_value', "%" . $database->escapeLike($word) . "%", 'LIKE');
+        $likeGroup = $likeGroup->condition('ub.field_user_body_value', "%" . $database->escapeLike($word) . "%", 'LIKE');
+        $query->condition($likeGroup);
+        $query->orderBy('nid', 'asc');
         $result = $query->execute()->fetchAll();
         return $result;
+    }
+  
+    public function get_image_caption($nid) {
+      $query = db_select('paragraphs_item_field_data', 'f');
+      $query->join('paragraph__field_image', 'pi', 'f.id = pi.entity_id');
+      $query->join('paragraph__field_caption', 'pc', 'f.id = pc.entity_id');
+      $query->condition('f.parent_id', $nid, "=");
+      $query->orderBy('id', 'asc');
+      $query->addField('pc', 'field_caption_value', 'caption');
+      $query->addField('pi', 'field_image_target_id', 'field_image');
+      $result = $query->execute()->fetchAll();
+      return $result;
     }
   
     public function get_comment_list($nid) {
@@ -41,12 +99,15 @@ class NodeModel {
       $query = db_select('comment_field_data', 'c');
       $query->join('comment__comment_body', 'b', 'c.cid = b.entity_id');
       $query->join('user__field_user_name', 'n', 'c.uid = n.entity_id');
+      $query->join('user__field_user_body', 'ub', 'c.uid = ub.entity_id');
       $query->join('user__user_picture', 'p', 'c.uid = p.entity_id');
       $query->fields('c',array('cid'));
+      $query->addField('c', 'uid');
       $query->addField('c', 'entity_id', 'nid');
       $query->addField('c', 'created');
       $query->addField('b', 'comment_body_value', 'body');
       $query->addField('n', 'field_user_name_value', 'user_name');
+      $query->addField('ub', 'field_user_body_value', 'user_body');
       $query->addField('p', 'user_picture_target_id', 'picture');
       $query->condition('c.entity_id', $nid, "=");
       $query->orderBy('c.created');

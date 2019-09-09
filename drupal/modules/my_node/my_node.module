@@ -5,7 +5,7 @@ function my_node_preprocess_node(&$variables) {
     $to = $user->mail->value;
     $params['context']['subject'] = "Subject";
     $params['context']['message'] = 'body';
-    $params['body'] = 'メッセージが来ました  W(`0`)W';
+    $params['body'] = '管理画面に訪問者が来ました  W(`0`)W';
     $message = \Drupal::service('plugin.manager.mail')->mail('my_node', 'notice', $to, 'ja', $params, true);
     
 }
@@ -16,7 +16,7 @@ function my_node_preprocess_node(&$variables) {
 function my_node_mail($key, &$message, $params) {
   switch ($key) {
     case 'notice':
-      $message['subject'] = "食堂からの問い合わせです";
+      $message['subject'] = "管理画面に訪問者が来ました";
       $message['body'][] = '問い合わせ区分：'.$params["type"];
       $message['body'][] = '名前：'.$params["name"];
       $message['body'][] = '連絡先：'.$params["contact"];
