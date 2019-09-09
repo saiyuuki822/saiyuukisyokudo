@@ -1,0 +1,1392 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"> 
+  <meta http-equiv="Content-Security-Policy" content="default-src * data: gap: content: https://ssl.gstatic.com; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'">
+  <title>Onsen UI Photo Sharing App</title>
+  <script src="components/loader.js"></script>
+  <script src="js/jquery.min.js"></script>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,600' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="components/loader.css">
+  <link rel="stylesheet" href="css/sweetalert.css">
+   <link rel="stylesheet" href="css/application.css">
+   <link rel="stylesheet" href="css/bootstrap.min.css">
+   <link rel="stylesheet" href="css/toolkit.css">
+   <script src="js/sweetalert.js"></script>
+   <script src="js/common.js"></script>
+   <script src="js/toolkit.js"></script>
+   <script src="js/application.js"></script>
+  <script>
+  
+
+    /*
+    *  This event listener will populate the top of the home screen with user stories when the page is initialized.
+    *  It uses the generateStoryBubbles function to do so.
+    */
+
+    document.addEventListener('init', function(event) {
+
+      var page = event.target;
+  
+      if (page.id == "home-page") {
+        var stories = page.querySelector('#stories');
+
+        //generateStoryBubbles(stories);
+      }
+
+    });
+
+    //The show event listener does the same thing as the one above but on the search page when it's shown.
+
+    document.addEventListener('show', function(event) {
+      var page = event.target;
+
+      if (page.id == "search-page") {
+        var channels = page.querySelector('#channels');
+
+        //generateStoryBubbles(channels);
+      }
+    });
+
+    /*
+    * This function is used to toggle the grid/list display of the posts in the profile page as well as
+    * change the color of the buttons to show which is the current view.
+    */
+
+    function display(id) {
+      document.getElementById("list").style.color="#1f1f21";
+      document.getElementById("grid").style.color="#1f1f21";
+      document.getElementById(id).style.color="#5fb4f4";
+
+      document.getElementById("list_view").style.display="none";
+      document.getElementById("grid_view").style.display="none";
+      document.getElementById(id+"_view").style.display="block";
+    }
+
+    //The generateStoryBubbles function is used to create the carousel items be used as stories by the upper two events.
+
+    function generateStoryBubbles(element) {
+      for(var i=0; i<9; i++) {
+        element.appendChild(ons.createElement(
+          '<ons-carousel-item>' +
+            '<div class="story">' +
+            '<div class="story-thumbnail-wraper unread"><img class="story-thumbnail" src="img/profile-image-0' + (i+1) + '.png" onclick="readStory(this)"></div>' +
+            '<p>david_graham</p>' +
+            '</div>' +
+          '</ons-carousel-item>'
+        ));
+      }
+    }
+
+    //The Like function is used to make the white heart appear in front of the picture as well as make the like button into a red heart and vice versa.
+
+    //The readStory function is used to change the red circle around a new story into grey after tapping on the new storry (thus reading it)
+
+    var readStory = function(event) {
+      event.parentNode.classList.remove("unread");
+      event.parentNode.classList.add("read");
+    }
+
+  </script>
+</head>
+<body>
+  <div class="loding-area" style="display:none;z-index:999;position:absolute;left:50%;top:50%"><img src="/assets/img/ld_icon.gif"></div>
+  <div class="modal fade" id="userModal" tabindex="-1" role="dialog" aria-labelledby="userModal" aria-hidden="true">
+  <div class="modal-dialog" style="width:100%;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">ユーザー登録</h4>
+      </div>
+
+      <div class="modal-body p-a-0">
+        <div class="modal-body-scroller">
+          <ul class="media-list media-list-users list-group">
+            <form id="user_regist-form" method="post" enctype="multipart/form-data">
+             <li class="list-group-item">
+              <div class="media">
+                <input type="text" class="name" name="name" placeholder="ユーザーID" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+             <li class="list-group-item">
+              <div class="media">
+                <input type="text" class="mail" name="mail" placeholder="メールアドレス" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <input type="password" name="password" placeholder="パスワード" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <input type="password" name="repassword" placeholder="パスワードの確認" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <input type="text" class="user_name" name="user_name" placeholder="ユーザー名" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                 <input type="file" name="picture" class="form-control" placeholder="アイキャッチ画像"/>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <textarea id="user_body" class="user_body" name="user_body" rows="4" cols="40" placeholder="自己紹介" style="width: 100%;" class="form-control"></textarea>
+                <input type="hidden" class="edit_uid" name="edit_uid" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <div class="media-body">
+                  <button class="btn btn-default btn-sm pull-right" data-dismiss="modal" onClick="return user_post(this);">
+                    <span class="glyphicon glyphicon-user"></span> 登録
+                  </button>
+                </div>
+              </div>
+            </li>
+            <input type="hidden" id="edit_nid" name="edit_nid" />
+            </form>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <div class="modal fade" id="goodModal" tabindex="-1" role="dialog" aria-labelledby="userModal" aria-hidden="true">
+  <div class="modal-dialog" style="width:100%;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">いいねと言ってる人</h4>
+      </div>
+
+      <div class="modal-body p-a-0">
+        <div class="modal-body-scroller">
+          <div id="insert-area"></div>
+          <ons-list id="list-template" class="list-wrapper" style="display:none;">
+            <div>  
+              <ons-list-item class="activity notification-post">
+                <div class="left">
+                  <img class="picture" src="img/profile-image-03.png" style="width:50px;height:50px;">
+                </div>
+                <div class="center">
+                  <div>
+                    <div class="content"></div><a class="ac_user_name" style="opacity: 0.4;">aaa</a>
+                  </div>
+                </div>
+              </ons-list-item>
+            </div>
+         </ons-list>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <div class="modal fade" id="butModal" tabindex="-1" role="dialog" aria-labelledby="userModal" aria-hidden="true">
+  <div class="modal-dialog" style="width:100%;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">だめねと言ってる人</h4>
+      </div>
+
+      <div class="modal-body p-a-0">
+        <div class="modal-body-scroller">
+          <ul class="media-list media-list-users list-group">
+            <form id="user_regist-form" method="post" enctype="multipart/form-data">
+             <li class="list-group-item">
+              <div class="media">
+                <input type="text" class="name" name="name" placeholder="ユーザーID" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+             <li class="list-group-item">
+              <div class="media">
+                <input type="text" class="mail" name="mail" placeholder="メールアドレス" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <input type="password" name="password" placeholder="パスワード" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <input type="password" name="repassword" placeholder="パスワードの確認" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <input type="text" class="user_name" name="user_name" placeholder="ユーザー名" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                 <input type="file" name="picture" class="form-control" placeholder="アイキャッチ画像"/>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <textarea id="user_body" class="user_body" name="user_body" rows="4" cols="40" placeholder="自己紹介" style="width: 100%;" class="form-control"></textarea>
+                <input type="hidden" class="edit_uid" name="edit_uid" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <div class="media-body">
+                  <button class="btn btn-default btn-sm pull-right" data-dismiss="modal" onClick="return user_post(this);">
+                    <span class="glyphicon glyphicon-user"></span> 登録
+                  </button>
+                </div>
+              </div>
+            </li>
+            <input type="hidden" id="edit_nid" name="edit_nid" />
+            </form>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <template id="login.html">
+    <ons-page class="main_pages" id="login-page">
+      <ons-toolbar style="background-color:#2882b5;">
+        <div class="left">
+          <ons-toolbar-button><ons-icon id="header-home-link" icon="fa-home"  style="color:#ffffff;" ></ons-icon></ons-toolbar-button>
+        </div>
+        <div class="center" style="color:white;">Login</div>
+        <div class="right">
+          <ons-toolbar-button><ons-icon icon="fa-align-justify" style="color:#ffffff;"></ons-icon></ons-toolbar-button>
+        </div>
+      </ons-toolbar>
+      <div style="margin-top:5%;margin-left:5%;">
+      <div><input type="text" id="name" name="name" placeholder="ユーザーID" value="saiyuuki" /></div>
+      <div style="margin-top:5px;"><input id="password" type="password" name="password" value="saiyuuki3" placeholder="パスワード" /></div>
+      <div style="margin-top:10px;"><input type="button" id="login" value="ログイン" /></div><br>
+      <a href="#" onclick="set_login_form()" >Adnministrator</a>
+      </div>
+      <div style="margin-left:15px;margin-top:30px;"><a href="#" id="regist_profile_button">新規ユーザー登録</a></div>
+    </ons-page>
+  </template>
+
+	<template id="menu.html">		
+    <ons-page>		
+      <ons-list id="menu_wrapper">
+        <ons-list-item id="home_menu" class="menu" onclick="show_node_list()" tappable>		
+          Home		
+        </ons-list-item>		
+        <ons-list-item id="bookmark_menu" class="menu" onclick="show_bookmark()" tappable>	
+          Bookmark
+        </ons-list-item>		
+        <ons-list-item id="logout_menu" onclick="location.href='./index.html'" tappable>ログアウト</ons-list-item>	
+      </ons-list>
+        <div id="menu_template_wrapper" style="display:none;"><ons-list-item id="menu_template" class ="menu tags_menu" tappable>aaa</ons-list-item></div>
+    </ons-page>		
+  </template>
+
+<ons-splitter>
+  <ons-splitter-side id="menu" side="left" width="350px" collapse swipeable>
+    <ons-page>		
+      <ons-list id="menu_wrapper">
+        <ons-list-item id="home_menu" class="menu" onclick="location.href='./index.html'" tappable>		
+          Home		
+        </ons-list-item>		
+        <ons-list-item id="bookmark_menu" class="menu" onclick="show_bookmark()" tappable>	
+          Bookmark
+        </ons-list-item>		
+        <ons-list-item id="logout_menu" onclick="location.href='./index.html'" tappable>ログアウト</ons-list-item>	
+        <div id="menu_template_wrapper" style="display:none;"><ons-list-item id="menu_template" tappable>aaa</ons-list-item></div>
+      </ons-list>		
+    </ons-page>		
+  </ons-splitter-side>
+  <ons-splitter-content id="content" page="login.html"></ons-splitter-content>
+</ons-splitter>
+<ons-template id="tab.html">
+  <ons-page>
+    <ons-tabbar id="tabbar">
+      <ons-tab icon="ion-home" page="navigator.html" class="home-view" active>
+      </ons-tab>
+      <!--<ons-tab icon="ion-ios-search" page="search.html">
+      </ons-tab>-->
+      <ons-tab icon="ion-ios-pricetag" page="search.html">
+      </ons-tab>
+      <ons-tab icon="fa-plus-square-o" class="post-view" page="camera.html">
+      </ons-tab>
+      <ons-tab icon="ion-ios-heart" page="notification.html" class="activity-view">
+      </ons-tab>
+      <ons-tab icon="ion-ios-person-outline" page="profile.html" class="profile-view">
+      </ons-tab>
+      <ons-tab icon="ion-ios-person-outline" page="menu.html" class="menu-view" style="display:none;">
+      </ons-tab>
+    </ons-tabbar>
+  </ons-page>
+</ons-template>
+
+<!-- Login Page -->
+
+  <!-- The Home Page -->
+  
+  <template id="home.html">
+    <ons-page class="main_pages" id="home-page">
+      <ons-toolbar style="background-color:#2882b5;">
+        <div class="left">
+          <ons-toolbar-button><ons-icon id="header-home-link" icon="fa-home"  style="color:#ffffff;" ></ons-icon></ons-toolbar-button>
+        </div>
+        <div>
+        
+        <div style="margin-left:20px;"><ons-search-input class="search_box"  placeholder="Home" style="background-color:#efefef;width:300px;"></ons-search-input></div>
+
+        </div>
+        <div class="right">
+	          <ons-toolbar-button id="home_menu" onclick="show_home_menu()"><ons-icon icon="fa-align-justify" style="color:#ffffff;"></ons-icon></ons-toolbar-button>
+        </div>
+      </ons-toolbar>
+      <div>
+        <div class="loding-area3" style="padding-left:45%;;z-index:999;"><img src="../www/assets/img/ld_icon.gif" style="display:none;width:50px;height:50px;"></div> 
+          <div id="node-area"></div>
+          <div id="area-end"></div>
+          <div class="loding-end" style="padding-left:45%;;z-index:999;"><img src="../www/assets/img/ld_icon.gif" style="display:none;width:50px;height:50px;"></div> 
+	          <div id="node-template-wrapper">
+          <div id="node-template" class="node-wrapper" style="display:none;">
+            <div class="hidden">aaaaa</div>
+            <ons-card class="post">
+              <div class="node">
+              <ons-list-item class="post_title">
+                <div class="left">
+                  <img class="list-item__thumbnail picture" src="img/profile-image-03.png" >
+                </div>
+                <div class="center">
+                  <div class="list-item__title user_name"><b><a href="#">saitou</a></b></div>
+                  <div class="list-item__subtitle created" style="font-size: 12px">Fushimi Inari Shrine, Kyoto</div>
+                </div>
+                <div class="right post_menu_wrapper" ><a href="#" class="post_menu" ><ons-button class="corner-button" modifier="quiet" ><ons-icon icon="ion-edit,material:ion-android-more-vertical"></ons-button></ons-icon></a><a href="#" class="post_delete" ><ons-button class="corner-button" modifier="quiet" ><ons-icon icon="ion-close,material:ion-android-more-vertical"></ons-button></ons-icon></a></div>
+              </ons-list-item>
+              <ons-carousel fullscreen swipeable auto-scroll overscrollable id="carousel">
+              <ons-carousel-item>
+		          <div style="text-align: center; position: relative;" class="touchBox">
+                <ons-icon size="150px" id="post-like-1" class="post-like" icon="ion-ios-heart"></ons-icon>
+                <img class="post-image image" src="img/post-01.jpg">
+                <div style="float:left;text-align:left;"><a href="#"><h3 class="title"></h3></a></div>
+                <div style="padding-top:5px;padding-left:70%;" class="tags-wrapper">
+                  <a href="#" class="tags_menu" style="pointer-events: auto;"><button class="btn btn-primary-outline btn-sm" style="background-color:#EEE;">
+                  <ons-icon icon="ion-ios-pricetag"></ons-icon> <span>Tags</span></button></a>
+                </div>
+                <div style="clear:both;"></div>
+                <p class="body" style="text-align:left;">投稿文章</p>
+              </div>
+              </ons-carousel-item>
+              <ons-carousel-item class="image_caption">
+                <div style="text-align: center; position: relative;">
+                  <ons-icon size="150px" id="post-like-1" class="post-like" icon="ion-ios-heart"></ons-icon>
+                  <img class="image field_image">
+                  <div style="float:left;text-align:left;"><a href="#"><h3 class="title"></h3></a></div>
+                  <div style="padding-top:5px;padding-left:70%;" class="tags-wrapper">
+                    <a href="#" class="tags_menu"><button class="btn btn-primary-outline btn-sm" style="background-color:#EEE;">
+                    <ons-icon icon="ion-ios-pricetag"></ons-icon> <span>Tags</span></button></a>
+                </div>
+                <div style="clear:both;"></div>
+                <p class="caption" style="text-align:left;">投稿文章</p>
+                </div>
+              </ons-carousel-item>
+
+
+
+              </div>
+              <ons-list-item class="post-button-bar" modifier="nodivider">
+                <div class="left" style="padding-top: 0px;padding-left:5px;">
+                <a href="#" class="good_user">いいねと言ってる人</a>
+                </div>
+                <div class="right" style="padding-top: 0px">
+                <a href="#" class="but_user">だめねと言ってる人</a>
+                </div>
+              </ons-list-item>
+              <ons-list-item class="post-button-bar" modifier="nodivider">
+                <div class="center" style="padding-top: 0px">
+                  <ons-button class="post-button good" modifier="quiet"><ons-icon id="button-post-good-" icon="ion-thumbsup"></ons-icon></ons-button>
+                  <ons-button class="post-button but" modifier="quiet"><ons-icon id="button-post-but-" icon="ion-thumbsdown"></ons-icon></ons-button>
+                  <ons-button class="post-button favorite" modifier="quiet"><ons-icon id="button-post-favorite-" icon="ion-bookmark"></ons-icon></ons-button>
+                </div>
+              </ons-list-item>
+              <div id="comment-area" class="comment-wrapper"></div>
+                <div class="comment-form">
+                  <div class="post-caption" style="float:left;"><img class="picture" src="img/post-01.jpg" style="width:54px;height:50px;"></div>
+                  <textarea class="comment_body" name="comment_body" style="width:80%""></textarea>
+                  <div style="text-align:right;margin-top:5px;margin-right:5px;"><input type="button" value="コメントする" class="comment_btn"></div>
+                  <div class="hide">
+                    <div class="user_name" style="padding-left:55px;">david</div>
+                  </div> 
+                </div>
+              <div class="comment-template comment hide">
+                <div class="post-caption" style="float:left;"><img class="picture" src="img/post-01.jpg" style="width:54px;height:50px;"></div>
+                <div class="comment-delete" style="font-size:8px;padding-left:95%;"><!--<span> ×</span>--><ons-icon icon="ion-close,material:ion-android-more-vertical" class="ons-icon ion-close ons-icon--ion"></ons-icon></div>
+                <div class="user_name" style="padding-left:55px;"><b><a href="#">david</a></b></div> 
+                
+                <div class="body" style="padding-left:50px;">eautiful kyoto #kyoto #fushimiinarishirine</div>
+                <div style="font-size:8px;padding-left:75%;"><span class="created"> 1 HOUR AGO</span></div>
+              </div>
+            </ons-card>
+          </div>
+          </div>
+        </div>
+
+      <style type="text/css">
+ons-carousel[disabled] {
+    pointer-events: true;
+    opacity: 0.75;
+}
+ons-carousel[disabled] {
+    pointer-events: true;
+    /* opacity: 0.75; */
+}
+ons-carousel a.tags_menu {
+  pointer-events: true;
+}
+
+        ons-carousel[disabled] {
+            opacity: 1;
+        }
+        .node {
+          
+        }
+        .stories-tab {
+          padding: 8px 15px;
+          background-color: #f6f6f6;
+          height: 75px;
+          font-size: 12px
+        }
+
+        .story {
+          display: inline-table;
+        }
+
+        .story p {
+          width: 100%;
+          max-width: 50px;
+          text-overflow: ellipsis;
+          margin: 0;
+          text-transform: none
+        }
+
+        .story-thumbnail-wraper {
+          text-align: center;
+          border-radius: 50%;
+        }
+
+        .story-thumbnail {
+          padding: 2px;
+          width: 45px;
+          border-radius: 50%;
+          vertical-align: middle;
+        }
+
+        .story-thumbnail:active {
+          width: 40px;
+          transition: width 0.1s, height 0.1s;
+        }
+
+        .unread {
+          border: 3px solid #d31010;
+        }
+
+        .read {
+          border: 2px solid #afafaf;
+        }
+
+        .post {
+          margin: 0px;
+          padding: 0px 0px 15px;
+          font-size: 14px;
+          border-bottom: 1px solid rgba(175, 175, 175, 0.43);
+          border-radius: 0;
+        }
+
+        .post_title {
+          padding-left: 10px;
+        }
+
+        .post-caption {
+          padding-left: 10px;
+        }
+
+        .post-like-info {
+          margin-bottom: 5px;
+          padding-left: 10px;
+        }
+
+        .post-image {
+          width: 100%;
+        }
+
+        .post-time {
+          font-size: 10px;
+          opacity: 0.7;
+          margin-top: 5px;
+          padding-left: 10px;
+        }
+
+        .post-like {
+          opacity: 0;
+          width: 100%;
+          position: absolute;
+          top: 25%;
+          color: white;
+          transition: opacity 0.4s;
+        }
+
+        .post-button-bar {
+          height: 40px;
+          padding-left: 0px;
+        }
+
+        .post-button {
+          font-size: 26px;
+          color: #1f1f21;
+          line-height: 26px;
+        }
+
+        .corner-button {
+          color: black;
+          font-size: 25px;
+          padding-right: 0;
+        }
+
+        .like {
+          color: red;
+        }
+
+        .list-item__thumbnail {
+          border-radius: 50%;
+        }
+
+        #node-area
+        {
+          max-length:600px;
+        }
+        .search_box input {
+          background-color:#efefef;
+        }
+      </style>
+
+    </ons-page>
+  </template>
+
+
+
+
+  <!-- The Search Page -->
+
+  <!-- The Search Page -->
+
+  <template id="search.html">
+    <ons-page class="Home"  id="search-page">
+      <ons-toolbar style="background-color:#2882b5;">
+        <!--
+        <div class="left">
+          <ons-toolbar-button><ons-icon id="header-home-link" icon="fa-home"  style="color:#ffffff;" ></ons-icon></ons-toolbar-button>
+        </div>
+        -->
+        <div class="center" style="color:white;">タグ管理</div>
+        <div class="right">
+	          <ons-toolbar-button id="home_menu" onclick="show_home_menu()"><ons-icon icon="fa-align-justify" style="color:#ffffff;"></ons-icon></ons-toolbar-button>
+        </div>
+      </ons-toolbar>
+            <form id="tag-form" method="post" enctype="multipart/form-data">
+<div style="vertical-align:middle;text-align:center;margin-top:5px;"><p>投稿につけるタグを8つまで登録できます</p></div>
+            <li class="list-group-item">
+              <div class="media">
+                <input type="text" name="post_tag1" placeholder="タグ1" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <input type="text" name="post_tag2" placeholder="タグ2" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <input type="text" name="post_tag3" placeholder="タグ3" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <input type="text" name="post_tag4" placeholder="タグ4" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <input type="text" name="post_tag5" placeholder="タグ5" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+<div class="media">
+                <input type="text" name="post_tag6" placeholder="タグ6" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <input type="text" name="post_tag7" placeholder="タグ7" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <input type="text" name="post_tag8" placeholder="タグ8" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <div style="margin-top:10px;text-align:center;">
+            <input type="hidden" 
+            id="add_tag_uid"
+            name="add_tag_uid" />
+            <a href="#">
+            <input id="addtag_btn" class="btn btn-success-outline" style="width:180px;border: 1px solid green;"  type="button" value="登録" /></a>
+            </form>
+            </div>
+      <div>
+
+        <!-- Same as the home page, the carousel is populated with stories when this page is displayed -->
+
+        <ons-carousel class="stories-tab" id="channels" auto-refresh swipeable overscrollable item-width="70px"></ons-carousel>
+
+        <!-- The combination of <ons-row> and <ons-col> elements are used to dispaly the pictures (the search results) in grid view -->
+
+        <div>
+
+
+          <ons-row style="display:none;" data-max="3">
+            <ons-col id="user_template" class="grid_wrapper">
+              <img class="grid_thumbnail" src="img/post-01.jpg" style="height:100px;max-height:100px;min-height:100px;">
+            </ons-col>
+          </ons-row>
+          <!--
+          <div id="user-area">
+          </div>
+          --> 
+
+          </div>
+          <!--
+          <div id="user-area">
+            <ons-row class="user"></ons-row>
+          </div>
+          -->
+          <!--
+            <ons-row id="user_template">
+            <ons-col class="user search_wrapper">
+              <img class="search_thumbnail picture" src="img/profile-image-01.png" style="height:100px;max-height:100px;min-height:100px;">
+            </ons-col>
+            </ons-row>
+          -->
+
+      </div>
+
+      <style type="text/css">
+        .stories-tab {
+          padding-top: 8px;
+          background-color: #f6f6f6;
+          height: 75px;
+          font-size: 12px
+        }
+
+        .story {
+          display: inline-table;
+        }
+
+        .story p {
+          width: 100%;
+          max-width: 50px;
+          text-overflow: ellipsis;
+          margin: 0;
+          text-transform: none
+        }
+
+        .story-thumbnail-wraper {
+          text-align: center;
+          border-radius: 50%;
+        }
+
+        .story-thumbnail {
+          padding: 2px;
+          width: 45px;
+          border-radius: 50%;
+          vertical-align: middle;
+        }
+
+        .story-thumbnail:active {
+          width: 40px;
+          transition: width 0.1s, height 0.1s;
+        }
+
+        .unread {
+          border: 3px solid #d31010;
+        }
+
+        .read {
+          border: 2px solid #afafaf;
+        }
+
+        .search_wrapper {
+          flex-basis: 100px;
+          margin-left: 0.25%;
+          margin-right: 0.25%;
+        }
+
+        .search_thumbnail {
+          width: 100%;
+        }
+
+        .search_box {
+          width: 90%;
+          padding-top: 7px;
+        }
+
+        .toolbar--material__center .search_box {
+          padding-top: 14px;
+        }
+
+        .search-input {
+          text-align: center;
+          height: 28px;
+        }
+      </style>
+
+
+
+    </ons-page>
+  </template>
+
+
+
+
+  <!-- The Camera Page -->
+  <template id="camera.html">
+    <ons-page class="Home"  id="camera-page">
+      <ons-toolbar style="background-color:#2882b5;">
+        <div class="center" style="color:white;">投稿</div>
+        <div class="right">
+	          <ons-toolbar-button id="home_menu" onclick="show_home_menu()"><ons-icon icon="fa-align-justify" style="color:#ffffff;"></ons-icon></ons-toolbar-button>
+        </div>
+      </ons-toolbar>
+
+
+      <div class="modal-body p-a-0">
+        <div class="modal-body-scroller">
+          <ul class="media-list media-list-users list-group">
+            <form id="upload-form" method="post" enctype="multipart/form-data">
+              <input type="hidden" id="uid" name="uid" />
+              <input type="hidden" id="follow" name="" />
+              <input type="hidden" id="edit_nid" name="edit_nid" />
+            <li class="list-group-item">
+              <div class="media">
+                <div class="media-body">
+                  <button class="btn btn-default btn-sm pull-right close" data-dismiss="modal" onClick="return upload(this);">
+                    <span class="glyphicon glyphicon-user"></span> Post
+                  </button>
+                </div>
+              </div>
+            </li>
+              <ons-carousel fullscreen swipeable auto-scroll overscrollable id="carousel">
+              <ons-carousel-item>
+            <li class="list-group-item">
+              <div class="media">
+                <input type="text" name="post_title" placeholder="Title" style="width: 100%;" class="form-control" data-action="grow" />
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                <textarea id="post_body" name="post_body" rows="4" cols="40" placeholder="Body" style="width: 100%;" class="form-control"></textarea>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                 <select id="tags" name="tags" class="form-control">
+                   <option value='' selected>投稿するタグを選択してください</option>
+                 </select>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                 <select id="public_scope" name="public_scope" class="form-control">
+                   <option value='1' selected>全公開</option>
+                   <option value='2'>フォロワーのみ</option>
+                   <option value='3'>自分のみ</option>
+                 </select>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                 <select id="navigation" name="navigation" class="form-control">
+                   <option value='' disabled selected style='display:none;'>投稿するメニューを選択してください</option>
+                 <?php foreach($navigation as $key => $value):?>
+                   <option value="<?php echo $value['menu_id'];?>"><?php echo $value['menu_name'];?></option>
+                 <?php endforeach; ?>
+                 </select>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="media">
+                 <input type="file" name="post_file" class="form-control" placeholder="アイキャッチ画像"/>
+            </li>
+              </ons-carousel-item>
+              <ons-carousel-item class="image_caption_form" data-idx="1">
+              <div class="image_caption">
+                <li id="image_caption_wrapper1" class="list-group-item image_caption_wrapper" >
+                <div class="media">
+                  <input class="field_image_form" type="file" name="field_image1" class="form-control" placeholder="追加画像" data-idx="1" /><br>
+                  <textarea class="caption form-control" name="caption1" rows="2" cols="40" placeholder="Body" style="width: 100%;" class="form-control"></textarea>
+                </div>
+                </li>
+                <li id="image_caption_wrapper2" class="list-group-item image_caption_wrapper" style="display:none;" >
+                <div class="media">
+                  <input class="field_image_form" type="file" name="field_image2" class="form-control" placeholder="追加画像" data-idx="2" /><br>
+                  <textarea class="caption form-control" name="caption2" rows="2" cols="40" placeholder="Body" style="width: 100%;" class="form-control"></textarea>
+                </div>
+                </li>
+                <li id="image_caption_wrapper3" class="list-group-item image_caption_wrapper" style="display:none;">
+                <div class="media">
+                  <input class="field_image_form" type="file" name="field_image3" class="form-control" placeholder="追加画像" data-idx="3" /><br>
+                  <textarea class="caption form-control" name="caption3" rows="2" cols="40" placeholder="Body" style="width: 100%;" class="form-control"></textarea>
+                </div>
+                </li>
+                <li id="image_caption_wrapper4" class="list-group-item image_caption_wrapper" style="display:none;">
+                <div class="media">
+                <input class="field_image_form" type="file" name="field_image4" class="form-control" placeholder="追加画像" data-idx="4"/><br>
+                  <textarea class="caption form-control" name="caption4" rows="2" cols="40" placeholder="Body" style="width: 100%;" class="form-control"></textarea> 
+                </div>
+                </li>
+              </div>
+              </ons-carousel-item>
+              <ons-carousel-item class="image_caption_form" data-idx="２" disabled="true">
+              <div class="image_caption">
+                <li id="image_caption_wrapper5" class="list-group-item image_caption_wrapper" style="display:none;">
+                <div class="media">
+                  <input class="field_image_form" type="file" name="field_image5" class="form-control" placeholder="追加画像" data-idx="5"/><br>
+                  <textarea class="caption form-control" name="caption5" rows="2" cols="40" placeholder="Body" style="width: 100%;" class="form-control"></textarea>
+                </div>
+                </li>
+                <li id="image_caption_wrapper6" class="list-group-item image_caption_wrapper" style="display:none;" >
+                <div class="media">
+                  <input class="field_image_form" type="file" name="field_image6" class="form-control" placeholder="追加画像" data-idx="6" /><br>
+                  <textarea class="caption form-control" name="caption6" rows="2" cols="40" placeholder="Body" style="width: 100%;" class="form-control"></textarea>
+                </div>
+                </li>
+                <li id="image_caption_wrapper7" class="list-group-item image_caption_wrapper" style="display:none;">
+                <div class="media">
+                  <input class="field_image_form" type="file" name="field_image7" class="form-control" placeholder="追加画像" data-idx="7" /><br>
+                  <textarea class="caption form-control" name="caption7" rows="2" cols="40" placeholder="Body" style="width: 100%;" class="form-control"></textarea>
+                </div>
+                </li>
+                <li id="image_caption_wrapper8" class="list-group-item image_caption_wrapper" style="display:none;">
+                <div class="media">
+                <input class="field_image_form" type="file" name="field_image8" class="form-control" placeholder="追加画像" data-idx="8"/><br>
+                  <textarea class="caption form-control" name="caption8" rows="2" cols="40" placeholder="Body" style="width: 100%;" class="form-control"></textarea> 
+                </div>
+                </li>
+              </div>
+              </ons-carousel-item>
+              </div>
+              </div>
+            </form>
+          </ul>
+        </div>
+      </div>
+
+      <style type="text/css">
+        .camera-view {
+          width: 100%;
+          height: 60%;
+          text-align: center;
+          background-color: #cacaca;
+          display: table;
+        }
+        #camera-page .modal-body-scroller {
+          max-height: 1200px;
+        }
+        .camera-icon {
+          vertical-align: middle !important;
+          font-size: 100px;
+          opacity: 0.4;
+          display: table-cell;
+        }
+
+        .camera-button {
+          width: 100%;
+          height: 40%;
+          text-align: center;
+          display: table;
+        }
+      </style>
+
+    </ons-page>
+  </template>
+
+
+
+
+  <!-- Notification Page -->
+
+
+
+  <template id="notification.html">
+    <ons-page id="you_notification">
+      <ons-toolbar style="background-color:#2882b5;">
+        <!--
+        <div class="left">
+          <ons-toolbar-button><ons-icon id="header-home-link" icon="fa-home"  style="color:#ffffff;" ></ons-icon></ons-toolbar-button>
+        </div>
+        -->
+        <div class="center" style="color:white;">アクティビティ</div>
+        <div class="right">
+          <ons-toolbar-button><ons-icon icon="fa-align-justify" style="color:#ffffff;" onclick="show_home_menu()"></ons-icon></ons-toolbar-button>
+        </div>
+      </ons-toolbar>
+      <ons-tabbar id="tabbar_notification" position="top" animation="slide">
+        <ons-tab label="My Activity" page="following-notifications.html"></ons-tab>
+        <ons-tab label="You Notification" page="your-notification.html" active></ons-tab>
+      </ons-tabbar>
+    </ons-page>
+  </template>
+
+
+
+
+  <!--  The Profile Page -->
+
+  <template id="profile.html">
+    <ons-page class="main_pages"  id="profile-page">
+      
+      <ons-toolbar style="background-color:#2882b5;">
+        <!--
+        <div class="left">
+          <ons-toolbar-button><ons-icon id="header-home-link" icon="fa-home"  style="color:#ffffff;" ></ons-icon></ons-toolbar-button>
+        </div>
+        -->
+        <div class="center" style="color:white;">プロフィール</div>
+        <div class="right">
+          <ons-toolbar-button><ons-icon icon="fa-align-justify" style="color:#ffffff;" onclick="show_home_menu()"></ons-icon></ons-toolbar-button>
+        </div>
+      </ons-toolbar>
+
+      <div class="content" style="background-color: white !important">
+
+        <!-- The content of the profile page is organized into several parts -->
+
+        <!-- The first part contains the user's profile picture on the left, and info about the number of posts, following and followed 
+        users on the right side of the screen -->
+
+        <div style="padding: 14px 6px 14px 16px;">
+          <div class="profile_wrapper">
+            <div class="profile_image_wrapper">
+              <img id="profile_user_picture" src="img/profile-image-08.png"><br>
+              <div><p id="profile_user_name"  class="profile_extra_wrapper"> demo</p></div>
+            </div>
+            <div class="profile_info_wrapper">
+              <p id="profile_user_body"></p>
+              	<div style="text-align:left;"><button id="follow_btn" class="btn btn-primary-outline btn-sm follow">
+                <ons-icon icon="ion-person-add"></ons-icon>  Follow</button></div>
+              <div><ons-button class="profile_info_button" id="edit_profile_button" modifier="large">Edit Your Profile</ons-button></div>
+            </div>
+          </div>
+          
+        </div>
+
+
+        <!-- The next part contains the buttons bar. Since we don't want any pressing effect, the buttons are implemented as simple icons instead -->
+<!--
+        <ons-row class="profile_button_bar">
+          <ons-col>
+            <ons-icon id="grid" icon="ion-grid" style="color: #5fb4f4" onclick="display('grid')"></ons-icon>
+          </ons-col>
+          <ons-col>
+            <ons-icon id="list" icon="md-format-list-bulleted" onclick="display('list')"></ons-icon>
+          </ons-col>
+          <ons-col>
+            <ons-icon icon="ion-ios-pricetag-outline"></ons-icon>
+          </ons-col>
+          <ons-col>
+            <ons-icon class="bookmark" icon="fa-bookmark-o"></ons-icon>
+          </ons-col>
+        </ons-row>
+-->
+        <!-- The last part is cosnisted of two <div> elements that display the posts of the users in two ways. The first one displays them as posts, just like the home screen, the other as a grid, similar to the search page -->
+
+        <div id="list_view" style="display: none;">
+          <ons-card class="post">
+            <ons-list-item class="post_title">
+              <div class="left">
+                <img class="list-item__thumbnail" src="img/profile-image-03.png" >
+              </div>
+              <div class="center">
+                <div class="list-item__title"><b>david_graham</b></div>
+                <div class="list-item__subtitle" style="font-size: 12px">Fushimi Inari Shrine, Kyoto</div>
+              </div>
+              <div class="right"><ons-button class="corner-button" modifier="quiet"><ons-icon icon="ion-ios-more,material:ion-android-more-vertical"></ons-icon></ons-button></div>
+            </ons-list-item>
+
+            <div style="text-align: center; position: relative;" ondblclick="">
+              <ons-icon size="150px" id="post-like-01" class="post-like" icon="ion-ios-heart"></ons-icon>
+              <img class="post-image" src="img/post-01.jpg">
+            </div>
+
+            <ons-list-item class="post-button-bar" modifier="nodivider">
+              <div class="center" style="padding-top: 0px">
+                <ons-button class="post-button" modifier="quiet" onclick=""><ons-icon id="button-post-good-" icon="ion-ios-heart-outline"></ons-icon></ons-button>
+                <ons-button class="post-button" modifier="quiet"><ons-icon icon="ion-ios-chatbubble-outline"></ons-icon></ons-button>
+                <ons-button class="post-button" modifier="quiet"><ons-icon icon="ion-ios-paperplane-outline"></ons-icon></ons-button>
+              </div>
+              <div class="right corner-button bookmark">
+                <ons-button class="post-button" modifier="quiet"><ons-icon icon="md-bookmark-outline"></ons-icon></ons-button>
+              </div>
+            </ons-list-item>
+
+            <div class="post-like-info"><b>someone_one</b> and 24 other liked this.</div>
+            <div class="post-caption"><b>david_graham</b> beautiful kyoto #kyoto #fushimiinarishirine </div>
+            <div class="post-time">1 HOUR AGO</div>
+          </ons-card>
+
+          <ons-card class="post">
+             <ons-list-item class="post_title">
+              <div class="left">
+                <img class="list-item__thumbnail" src="img/profile-image-08.png" >
+              </div>
+              <div class="center">
+                <div class="list-item__title"><b>david_graham</b></div>
+                <div class="list-item__subtitle" style="font-size: 12px">Kinkakuji Temple, Kyoto</div>
+              </div>
+              <div class="right corner-button"><ons-toolbar-button><ons-icon icon="ion-ios-more,material:ion-android-more-vertical"></ons-icon></ons-toolbar-button></div>
+            </ons-list-item>
+
+            <div style="text-align: center; position: relative;">
+              <ons-icon size="150px" id="post-like-02" class="post-like" icon="ion-ios-heart"></ons-icon>
+              <img class="post-image" src="img/post-02.jpg">
+            </div>
+
+            <ons-list-item class="post-button-bar" modifier="nodivider">
+              <div class="center" style="padding-top: 0px">
+                <ons-button class="post-button" modifier="quiet"><ons-icon id="button-good-like-02" icon="ion-ios-heart-outline"></ons-icon></ons-button>
+                <ons-button class="post-button" modifier="quiet"><ons-icon icon="ion-ios-chatbubble-outline"></ons-icon></ons-button>
+                <ons-button class="post-button" modifier="quiet"><ons-icon icon="ion-ios-paperplane-outline"></ons-icon></ons-button>
+              </div>
+              <div class="right corner-button bookmark">
+                <ons-button class="post-button" modifier="quiet"><ons-icon icon="md-bookmark-outline"></ons-icon></ons-button>
+              </div>
+            </ons-list-item>
+
+            <div class="post-like-info"><b>someone_one</b> and 24 other liked this.</div>
+            <div class="post-caption"><b>david_graham</b> Golden Temple ^_^ #kyoto #goldentemple</div>
+            <div class="post-time">1 HOUR AGO</div>
+          </ons-card>
+
+          <ons-card class="post">
+            <ons-list-item class="post_title">
+              <div class="left">
+                <img class="list-item__thumbnail" src="img/profile-image-02.png" >
+              </div>
+              <div class="center">
+                <div class="list-item__title"><b>david_graham</b></div>
+                <div class="list-item__subtitle" style="font-size: 12px">Tokyo</div>
+              </div>
+              <div class="right"><ons-button class="corner-button" modifier="quiet"><ons-icon icon="ion-ios-more,material:ion-android-more-vertical"></ons-icon></ons-button></div>
+            </ons-list-item>
+
+            <div style="text-align: center; position: relative;">
+              <ons-icon size="150px" id="post-like-03" class="post-like" icon="ion-ios-heart"></ons-icon>
+              <img class="post-image" src="img/post-03.jpg">
+            </div>
+
+            <ons-list-item class="post-button-bar" modifier="nodivider">
+              <div class="center" style="padding-top: 0px">
+                <ons-button class="post-button" modifier="quiet"><ons-icon id="button-post-good-" icon="ion-ios-heart-outline"></ons-icon></ons-button>
+                <ons-button class="post-button" modifier="quiet"><ons-icon icon="ion-ios-chatbubble-outline"></ons-icon></ons-button>
+                <ons-button class="post-button" modifier="quiet"><ons-icon icon="ion-ios-paperplane-outline"></ons-icon></ons-button>
+              </div>
+              <div class="right corner-button bookmark">
+                <ons-button class="post-button" modifier="quiet"><ons-icon icon="md-bookmark-outline"></ons-icon></ons-button>
+              </div>
+            </ons-list-item>
+
+            <div class="post-like-info"><b>someone_one</b> and 24 other liked this.</div>
+            <div class="post-caption"><b>david_graham</b> The harmony sakura brings #sakura #happy #harmony #love</div>
+            <div class="post-time">1 HOUR AGO</div>
+          </ons-card>
+        </div>
+
+        <div id="grid_view">
+          <ons-row style="display:none;" data-max="3">
+            <ons-col id="follow-template" class="grid_wrapper user">
+              <img class="grid_thumbnail" src="img/post-01.jpg" style="height:100px;max-height:100px;min-height:100px;">
+            </ons-col>
+          </ons-row>
+          <div id="follow-area">
+            <ons-row class="follow"></ons-row>
+          </div>
+        </div>
+      </div>
+
+      <style type="text/css">
+        .profile_wrapper {
+          display: inline-flex;
+        }
+
+        .profile_image_wrapper {
+          margin-right: 10px;
+          width: 35%;
+          position: relative;
+        }
+
+        .profile_image_wrapper ons-icon {
+          position: absolute;
+          color: #5fb4f4;
+          background: white;
+          border-radius: 80%;
+          text-align: center;
+          width: 24px;
+          bottom: 0%;
+          right: 0%;
+        }
+
+        .profile_image_wrapper img {
+          width: 100%;
+          border-radius: 50%;
+        }
+
+        .profile_info_wrapper {
+          width: 100%;
+          text-align: center;
+        }
+
+        .profile_extra_wrapper {
+          margin: 5px 0px 0px 0px;
+          font-size: 14px;
+        }
+
+        .profile_info_numbers {
+          font-size: 14px;
+          display: inline-flex;
+        }
+
+        .profile_info_numbers div {
+          margin-right: 7%;
+        }
+
+        .profile_info_text {
+          opacity: 0.5;
+          margin-top: -5px;
+        }
+
+        .profile_info_button {
+          height: 25px;
+          background: transparent;
+          border: 1px solid #e0e0e0;
+          border-radius: 7px;
+          color: black;
+          line-height: 13px;
+          font-size: 14px;
+          margin-top: 5px;
+        }
+
+        .profile_info_button.button--material {
+          min-height: 25px;
+          line-height: 25px !important;
+        }
+
+        .profile_button_bar{
+          text-align: center;
+          font-size: 26px;
+          height: 50px;
+          line-height: 40px;
+          border-top: 1px solid rgba(187, 187, 187, 0.51)
+        }
+
+        .profile_button_bar ons-col{
+          width: 25%;
+        }
+
+        .post {
+          margin: 0px;
+          padding: 0px 0px 15px;
+          font-size: 14px;
+          border-bottom: 1px solid rgba(175, 175, 175, 0.43);
+          border-radius: 0;
+        }
+
+        .post_title {
+          padding-left: 10px;
+        }
+
+        .post-caption {
+          padding-left: 10px;
+        }
+
+        .post-like-info {
+          margin-bottom: 5px;
+          padding-left: 10px;
+        }
+
+        .image {
+          max-width: 100%;
+          max-height: 256px;
+          min-width: 100%;
+          min-height: 256px;
+          width: 100%;
+        }
+
+        .post-time {
+          font-size: 10px;
+          opacity: 0.7;
+          margin-top: 5px;
+          padding-left: 10px;
+        }
+
+        .post-like {
+          opacity: 0;
+          width: 100%;
+          position: absolute;
+          top: 25%;
+          color: white;
+          transition: opacity 0.4s;
+        }
+
+        .post-button-bar {
+          height: 40px;
+          padding-left: 0px;
+        }
+
+        .post-button {
+          font-size: 26px;
+          color: #1f1f21;
+          line-height: 26px;
+        }
+
+        .corner-button {
+          color: black;
+          font-size: 25px;
+          padding-right: 0;
+        }
+
+        .like {
+          color: red;
+        }
+
+        .list-item__thumbnail {
+          border-radius: 50%;
+        }
+
+        .grid_wrapper {
+          width: 33%;
+          margin-left: 0.25%;
+          margin-right: 0.25%;
+        }
+
+        .grid_thumbnail {
+          width: 100%;
+        }
+
+        body {
+          overflow-y: scroll;
+          -webkit-overflow-scrolling: touch;
+        }
+
+      </style>
+
+    </ons-page>
+  </template>
+
+
+
+
+  <!-- Following Notification Page -->
+
+  <template id="following-notifications.html">
+    <ons-page id="my_activity">
+      <ons-list>
+        <div id="activity-area"></div>
+        <!-- This item is a template for a notification informing the user about other users liking a post of a followed user. -->
+
+
+      </ons-list>
+
+      <style type="text/css">
+        .notification-post {
+          padding-left: 7px;
+          font-size: 14px;
+        }
+
+        .notification_thumbnail {
+          width: 30px;
+        }
+      </style>
+
+    </ons-page>
+  </template>
+
+
+
+
+  <!-- User's Notification Page -->
+
+  
+  <template id="your-notification.html">
+    <ons-page id="your-notification">
+      <ons-list>
+        <div id="activity-area"></div>
+        <div id="activity-template" style="display:none;">
+        <ons-list-item class="activity notification-post">
+          <div class="left">
+            <img class="list-item__thumbnail" src="img/profile-image-03.png">
+          </div>
+          <div class="center">
+            <div>
+              <div class="content"></div><span class="updated" style="opacity: 0.4;">1 hour ago</span>
+            </div>
+          </div>
+        </ons-list-item>
+        </div>
+      </ons-list>
+
+      <style type="text/css">
+        .notification-post {
+          padding-left: 7px;
+          font-size: 14px;
+        }
+
+        .notification_thumbnail {
+          width: 30px;
+        }
+      </style>
+
+    </ons-page>
+  </template>
+
+  <style>
+    .tabbar {
+      background-color: white;
+    }
+
+    :checked + .tabbar__button {
+        color: black;
+    }
+
+    .tabbar__button {
+        color: #bebebe;
+    }
+
+    .toolbar {
+      background-color: white;
+    }
+
+    .toolbar__title {
+      text-align: center;
+      color: #1f1f21;
+    }
+
+    .toolbar-button {
+      color: #1f1f21;
+    }
+  </style>
+
+</body>
+</html>
