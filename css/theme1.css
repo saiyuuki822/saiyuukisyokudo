@@ -1,0 +1,31 @@
+
+
+.row .col-sm {
+  height: 45px;
+  text-align:center;
+  background-color:#548b18;
+  
+  
+  vertical-align: middle;
+  padding-top:5px;
+}
+
+#main-navigation .col-sm a {
+  color: #fff;
+}
+
+#main-navigation-item {
+  border:solid 1px #fff;
+}
+
+#main-link {
+  color: #fff;
+}
+
+#main-slider {
+  padding: 3px;
+}
+
+h2 {
+  height:45px;
+}
