@@ -14,8 +14,9 @@
   color: #fff;
 }
 
-#main-navigation-item {
+#main-navigation li {
   border:solid 1px #fff;
+  background-color: #336699;
 }
 
 #main-link {
@@ -29,3 +30,65 @@
 h2 {
   height:45px;
 }
+
+#main-navigation li {
+  color: #ffffff;
+  border: 1px solid #cccccc;
+  background-color: #336699;
+}
+
+#main-navigation li a {
+  color: #ffffff;
+}
+
+#main-navigation > li.active > a, .nav-pills > li.active > a:hover, .nav-pills > li.active > a:focus {
+    color: #ffffff;
+    background-color: #000000;
+}
+
+#title {
+  color: black;
+  font-color: black;
+  font-size: 36px;
+  font-family: "Hiragino Kaku Gothic ProN","メイリオ", sans-serif;
+}
+
+#content .topbar {
+  background-color: black;
+  box-shadow: 1px 2px 5px #bcbcbc;
+  font-size: 100%;
+  color: #FFF;
+  padding: 5px 10px 5px 15px;
+  clear: both;
+  border-bottom: 5px solid #336699;
+}
+
+#content #main {
+  margin-top: 20px;
+}
+
+.container {
+    margin-right: auto;
+    margin-left: auto;
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+#sub .panel {
+  border-color: #cccccc;
+}
+
+#sub .panel .panel-heading {
+  background-color: #336699;
+}
+
+#sub .panel .panel-body {
+    background: #333;
+    color: #ffffff;
+    border-bottom: 1px dashed #666;
+}
+
+#sub .panel .panel-body a {
+  color: #fff;
+}
+

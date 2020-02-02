@@ -8,8 +8,12 @@
     <meta name="keywords" content="">
     <meta name="author" content="">
     <meta property="og:image" content="http://saiyuuki-syokudo.sakura.ne.jp/assets/img/ld_icon.gif" />
-
-    <title>Home &middot; </title>
+    <?php if(isset($og_image)):?>
+    <meta property="og:image" content="<?php echo $og_image; ?>" />
+    <?php else: ?>
+    <meta property="og:image" content="http://mypotal.jpn.com/images/logo.jpg" />
+    <?php endif;?>
+    <title>MYPORTAL<?php if(isset($title)): echo " | サイユウキ食堂 |". $title; endif;?></title>
 
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,600' rel='stylesheet' type='text/css'>
     <link href="/assets/css/toolkit.css" rel="stylesheet">
@@ -25,9 +29,71 @@
         *width: 100%;
       }
     </style>
-    <script src="/assets/js/bootstrap.min.js"></script>
-    <script src="/js/sweetalert.js"></script>
+    <style>
+   .gradation{
+      background: -webkit-linear-gradient(left, #e5033e, #b701b5, #4a02c2);
+      background: -moz-linear-gradient(left, #e5033e, #b701b5, #4a02c2);
+      background: -o-linear-gradient(left, #e5033e, #b701b5, #4a02c2);
+      background: linear-gradient(to right, #e5033e, #b701b5, #4a02c2);
+      mix-blend-mode: screen;
+      color: #ffffff;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .shadow{
+      color: #00BCD4;
+      text-shadow: 2px 2px #fff, 5px 5px rgba(0, 188, 212, 0.4);
+    }
+    .border{
+      color: #fff;
+      text-shadow: 1px 1px 1px #ff9800, -1px 1px 1px #ff9800, 1px -1px 1px #ff9800, -1px -1px 1px #ff9800, 1px 1px 1px #ff9800, -1px 1px 1px #ff9800, 1px -1px 1px #ff9800, -1px -1px 1px #ff9800;
+    }
+    .border02{
+        color: #fff;
+        text-shadow: 1px 1px 1px #555, -1px 1px 1px #555, 1px -1px 1px #555, -1px -1px 1px #555, 1px 1px 1px #555, -1px 1px 1px #555, 1px -1px 1px #555, -1px -1px 1px #555, 5px 5px #9ccc65;
+        transform: rotate(-4deg);
+    }
+.customNav {
+    background-color: #eee;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+      
+      
+.customNav > li > a {
+    padding-top: 15px;
+    padding-bottom: 15px;
+    margin-bottom: 0;
+    font-weight: bold;
+    color: #333;
+    text-align: center;
+    background-color: #e5e5e5;
+    background-image: -webkit-gradient(linear, left top, left bottom, from(#f5f5f5), to(#e5e5e5));
+    background-image: -webkit-linear-gradient(top, #f5f5f5 0%, #e5e5e5 100%);
+    background-image: -o-linear-gradient(top, #f5f5f5 0%, #e5e5e5 100%);
+    background-image: -webkit-gradient(linear, left top, left bottom, from(top), color-stop(0%, #f5f5f5), to(#e5e5e5));
+    background-image: linear-gradient(top, #f5f5f5 0%, #e5e5e5 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f5f5f5', endColorstr='#e5e5e5',GradientType=0 );
+    background-repeat: repeat-x;
+    border-bottom: 1px solid #d5d5d5;
+}
+      
+.customNav > li:first-child > a {
+    border-radius: 5px 5px 0 0;
+}
+      
+.customNav > li:first-child > a {
+    border-radius: 5px 5px 0 0;
+}
+    </style>
+    <script src="/assets/js/jquery.min.js"></script>
     <script src="/js/post.js"></script>
+    <script src="/js/settings.js"></script>
+    
+        <link href="/assets/css/application.css" rel="stylesheet">
+        <link rel="stylesheet" href="/css/style.css">
+        <link rel="stylesheet" href="/css/theme1.css">
+        <!--<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">-->
     
   </head>
 
@@ -36,6 +102,7 @@
 
   <div class="loding-area" style="display:none;z-index:999;position:absolute;left:50%;top:50%"><img src="/assets/img/ld_icon.gif"></div> 
   <div class="growl" id="app-growl"></div>
+    <?php if(isset($login_user)):?>
   <nav class="navbar navbar-inverse navbar-fixed-top app-navbar">
   <div class="container">
     <div class="navbar-header">
@@ -45,23 +112,24 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="index.html">
+      <a class="navbar-brand" href="/">
         <img src="/assets/img/brand-white.png" alt="brand">
       </a>
     </div>
+
     <div class="navbar-collapse collapse" id="navbar-collapse-main">
       <ul class="nav navbar-nav hidden-xs">
         <li class="active">
-          <a href="/">Home!!</a>
+          <a href="/">Home</a>
         </li>
         <li>
           <a href="/<?php echo $login_user['name'];?>">MyPage</a>
         </li>
         <li>
-          <a data-toggle="modal" href="#msgModal">Messages</a>
+          <a href="/settings">Settings</a>
         </li>
         <li>
-          <a href="docs/index.html">Docs</a>
+          <a href="docs/#msgModal">Message</a>
         </li>
       </ul>
       <ul class="nav navbar-nav navbar-right m-r-0 hidden-xs">
@@ -71,9 +139,13 @@
           </a>
         </li>
         <li>
+          
+          <?php if(isset($user)):?>
           <button class="btn btn-default navbar-btn navbar-btn-avitar" data-toggle="popover">
             <img class="img-circle" src="<?php echo $image[$user['picture']];?>">
           </button>
+          <?php endif;?>
+          
         </li>
       </ul>
       <form class="navbar-form navbar-right app-search" role="search">
@@ -82,12 +154,9 @@
         </div>
       </form>
       <ul class="nav navbar-nav hidden-sm hidden-md hidden-lg">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="profile/index.html">Profile</a></li>
-        <li><a href="notifications/index.html">Notifications</a></li>
-        <li><a data-toggle="modal" href="#msgModal">Messages</a></li>
-        <li><a href="docs/index.html">Docs</a></li>
-        <li><a href="#" data-action="growl">Growl</a></li>
+        <li><a href="/">Home</a></li>
+        <li><a href="/<?php echo $login_user['name'];?>">MyPage</a></li>
+        <li><a href="/settings">Settings</a></li>
         <li><a href="login/index.html">Logout</a></li>
       </ul>
       <ul class="nav navbar-nav hidden">
@@ -95,9 +164,10 @@
         <li><a href="/index.php/login">Logout</a></li>
       </ul>
     </div>
+
   </div>
 </nav>
-
+    <?php endif;?>
 <div class="modal fade" id="msgModal" tabindex="-1" role="dialog" aria-labelledby="msgModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -360,7 +430,7 @@
   
   
   
-  <div class="modal fade" id="registModal" tabindex="-1" role="dialog" aria-labelledby="registModal" aria-hidden="true">
+<div class="modal fade" id="registModal" tabindex="-1" role="dialog" aria-labelledby="registModal" aria-hidden="true">
   <div class="modal-dialog" style="width:100%;">
     <div class="modal-content">
       <div class="modal-header">
@@ -465,9 +535,11 @@
               <div class="media">
                  <select id="naigation" name="navigation" class="form-control">
                    <option value='' disabled selected style='display:none;'>投稿するメニューを選択してください</option>
+                 <?php if(isset($navigation)):?>
                  <?php foreach($navigation as $key => $value):?>
                    <option value="<?php echo $value['menu_id'];?>"><?php echo $value['menu_name'];?></option>
                  <?php endforeach; ?>
+                   <?php endif;?>
                  </select>
               </div>
             </li>
@@ -553,79 +625,14 @@
     </div>
   </div>
 </div>
-
-
+<?php if($is_settings):?>      
+<?php echo $content;?>
+<?php endif;?>
+  
+<?php if(!$is_theme && !$is_settings):?>
 <div class="container p-t-md">
   <div class="row">
-    <div class="col-md-3">
-      <div class="panel panel-default panel-profile m-b-md">
-        <div class="panel-heading" style="background-image: url(/assets/img/iceland.jpg);"></div>
-        <div class="panel-body text-center">
-          <a href="profile/index.html">
-            <img
-              class="panel-profile-img"
-              src="<?php echo $image[$user['picture']];?>">
-          </a>
-
-          <h5 class="panel-title">
-            <a class="text-inherit" href="profile/index.html"><?php echo $user['user_name'];?></a>
-          </h5>
-
-          <?php if($user["uid"] != 0):?>
-          <p class="m-b-md"><?php echo $user['user_body'];?></p>
-          <?php else: ?>
-          <a href="#"> <button class="btn btn-success-outline" data-dismiss="modal" onClick="return regist(this)">新規ユーザー登録</button><br></a>
-          <?php endif;?>
-
-          <ul class="panel-menu">
-            <li class="panel-menu-item">
-              <a href="#userModal" class="text-inherit" data-toggle="modal">
-                Friends
-                <h5 class="m-y-0">12M</h5>
-              </a>
-            </li>
-
-            <li class="panel-menu-item">
-              <a href="#userModal" class="text-inherit" data-toggle="modal">
-                Enemies
-                <h5 class="m-y-0">1</h5>
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="panel panel-default visible-md-block visible-lg-block">
-        <div class="panel-body">
-          <h5 class="m-t-0">Favorite Site <small>· <a href="#">Edit</a></small></h5>
-          
-          <ul class="list-unstyled list-spaced">
-            <?php foreach($user['favorite_url'] as $favorite_url):?>
-            <li><span class="text-muted icon icon-calendar m-r"></span><a href="<?php echo $favorite_url['link_url'];?>" target="_blank"><?php echo $favorite_url['link_name'];?></a>
-            <?php endforeach;?>
-          </ul>
-        </div>
-      </div>
-
-       <div class="panel panel-default visible-md-block visible-lg-block">
-        <div class="panel-body">
-          <h5 class="m-t-0">Follow <small>· <a href="#">Edit</a></small></h5>
-          <div data-grid="images" data-target-height="150">
-            <?php for($i = 0;$i<6;$i++):?>
-           
-              <?php if(isset($user['follow'][$i])):?>
-              <div><img data-width="640" data-height="640" data-action="zoom" src="<?php echo $image[$user['follow'][$i]['picture']];?>" style="max-width:640px;max-height:640px;"></div>
-              <?php else: ?>
-              <div><img data-width="640" data-height="640" data-action="zoom" src="" style="max-width:640px;max-height:640px;display:none;"></div>
-              <?php endif;?>
-            
-            <?php endfor;?>
-
-
-          </div>
-        </div>
-      </div>
-    </div>
+    <?php echo $sidebar_left;?>
 
     <div class="col-md-6">
       <ul class="list-group media-list media-list-stream">
@@ -640,97 +647,27 @@
             </div>
           </div>
         </li>
-
         <?php echo $content;?>
-
-        
-
-
         </li>
       </ul>
     </div>
-    <div class="col-md-3">
-      <div class="alert alert-warning alert-dismissible hidden-xs" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <a class="alert-link" href="profile/index.html">Visit your profile!</a> Check your self, you aren't looking too good.
-      </div>
-
-      <div class="panel panel-default m-b-md hidden-xs">
-        <div class="panel-body">
-          <h5 class="m-t-0">Sponsored</h5>
-          <div data-grid="images" data-target-height="150">
-            <img class="media-object" data-width="640" data-height="640" data-action="zoom" src="/assets/img/instagram_2.jpg">
-          </div>
-          <p><strong>It might be time to visit Iceland.</strong> Iceland is so chill, and everything looks cool here. Also, we heard the people are pretty nice. What are you waiting for?</p>
-          <button class="btn btn-primary-outline btn-sm">Buy a ticket</button>
-        </div>
-      </div>
-
-      <div class="panel panel-default m-b-md hidden-xs">
-        <div class="panel-body">
-        <h5 class="m-t-0">Likes <small>· <a href="#">View All</a></small></h5>
-        <ul class="media-list media-list-stream">
-          <li class="media m-b">
-            <a class="media-left" href="#">
-              <img
-                class="media-object img-circle"
-                src="/assets/img/avatar-fat.jpg">
-            </a>
-            <div class="media-body">
-              <strong>Jacob Thornton</strong> @fat
-              <div class="media-body-actions">
-                <button class="btn btn-primary-outline btn-sm">
-                  <span class="icon icon-add-user"></span> Follow</button>
-              </div>
-            </div>
-          </li>
-           <li class="media">
-            <a class="media-left" href="#">
-              <img
-                class="media-object img-circle"
-                src="/assets/img/avatar-mdo.png">
-            </a>
-            <div class="media-body">
-              <strong>Mark Otto</strong> @mdo
-              <div class="media-body-actions">
-                <button class="btn btn-primary-outline btn-sm">
-                  <span class="icon icon-add-user"></span> Follow</button></button>
-              </div>
-            </div>
-          </li>
-        </ul>
-        </div>
-        <div class="panel-footer">
-          Dave really likes these nerds, no one knows why though.
-        </div>
-      </div>
-
-      <div class="panel panel-default panel-link-list">
-        <div class="panel-body">
-          © 2015 Bootstrap
-
-          <a href="#">About</a>
-          <a href="#">Help</a>
-          <a href="#">Terms</a>
-          <a href="#">Privacy</a>
-          <a href="#">Cookies</a>
-          <a href="#">Ads </a>
-
-          <a href="#">info</a>
-          <a href="#">Brand</a>
-          <a href="#">Blog</a>
-          <a href="#">Status</a>
-          <a href="#">Apps</a>
-          <a href="#">Jobs</a>
-          <a href="#">Advertise</a>
-        </div>
-      </div>
+    <?php echo $sidebar_right;?>
+  </div>
+</div>
+<?php endif;?>
+<?php if($is_theme):?>
+<div class="container p-t-md">
+  <div class="row">
+    <div>
+      <?php if(isset($theme)):?>
+      <?php echo $theme;?>
+      <?php endif;?>
     </div>
   </div>
 </div>
+<?php endif;?>
 
 
-    <script src="/assets/js/jquery.min.js"></script>
     <script src="/assets/js/chart.js"></script>
     <script src="/assets/js/toolkit.js"></script>
     <script src="/assets/js/application.js"></script>

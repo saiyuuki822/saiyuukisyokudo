@@ -1,4 +1,4 @@
-<?php
+ <?php
 /**
  * Fuel is a fast, lightweight, community driven PHP5 framework.
  *
@@ -19,19 +19,28 @@
  * @package  app
  * @extends  Controller
  */
-  class Controller_Myportal extends Controller_My
+class Controller_Myportal extends Controller_My
 {
-  public $template = "theme1/template";
+  public $template = "template";
   public $site_user;
     
     public function before()
     {
       parent::before();
       $user = new Model_User();
+      $common = new Component_Common();
       $name = Uri::segment(1);
       $result = $user->get_user_by_name($name);
-      $this->site_user = $result[0];
-      $this->template->site_user = $result[0];
+      $user = $common->getUser($result["uid"]);
+      $this->site_user = $user;
+      $this->template->site_user = $user;
+      $this->template->login_user = Session::get('user');
+      $this->template->image = $this->image;
+      $this->template->is_theme = true;
+      $this->template->is_settings = false;
+      $this->template->user = $this->site_user;
+      
+      $this->sub_menu = View::forge($this->site_user["my_theme"]["system_name"]. '/sub_menu', ["site_user" => $this->site_user]);
     }
 	/**
 	 * The basic welcome message
@@ -41,6 +50,7 @@
 	 */
 	public function action_index()
 	{
+    
     $user = new Model_User();
     $node = new Model_Node();
     
@@ -81,10 +91,11 @@
       $follow = $user->get_user_follow($login_user['uid']);
       $favorite_url = $user->get_user_favorite_url($login_user['uid']);
       // メインナビゲーションを取得
-      $curl = Request::forge('http://syokudo.jpn.org/api/navigation/'.$login_user['uid'], 'curl');
-      $response = $curl->execute()->response();
-      $list = \Format::forge($response->body,'json')->to_array();
-      $navigation = $list;
+      //$curl = Request::forge('http://syokudo.jpn.org/api/navigation/'.$login_user['uid'], 'curl');
+      //$response = $curl->execute()->response();
+      //$list = \Format::forge($response->body,'json')->to_array();
+      //$navigation = $list;
+      $navigation = []; 
       Session::set('navigation', $navigation);
     } else {
       //Response::redirect('/index.php/login', 'refresh', 200);
@@ -96,11 +107,11 @@
       $navigation = array();
       Session::set('navigation', $navigation);
     }
-    
+
         // メインナビゲーションを取得
-        $curl = Request::forge('http://syokudo.jpn.org/api/navigation/29', 'curl');
-        $response = $curl->execute()->response();
-        $list = \Format::forge($response->body,'json')->to_array();
+        //$curl = Request::forge('http://syokudo.jpn.org/api/navigation/29', 'curl');
+        //$response = $curl->execute()->response();
+        //$list = \Format::forge($response->body,'json')->to_array();
         
         // サブナビゲーションを取得
         $curl = Request::forge('http://syokudo.jpn.org/api/user_sub_menu/29', 'curl');
@@ -115,7 +126,7 @@
       
       
 
-        
+        $list = [];  
         $page = [];
         $current_link;
         foreach($list as $id => $data) {
@@ -132,6 +143,7 @@
             $current_link = $link_name;
           }
         }
+        /*
         $current_link = "welcome";
         if(!empty($current_link)) {
           if($page[$current_link]['type'] == 2) {
@@ -142,9 +154,9 @@
               $this->content_data = $data[0]["body_value"];
           }
         }
-    
+        */
     $data = html_entity_decode($this->content_data);
-    $this->template->content = View::forge('theme1/welcome/index', [], false)->auto_filter(false);
+    $this->template->content = View::forge($this->site_user["my_theme"]["system_name"].'/welcome/index', [], false)->auto_filter(false);
     $this->template->content->set("data1", $data);
 
     $login_user['follow'] = $follow;
@@ -153,18 +165,22 @@
     $this->template->is_top = true;
     $this->template->user = $login_user;
     //$this->template->user_navigation = $navigation;
-    $this->template->content = View::forge('theme1/welcome/index', ["data1" => $this->content_data], false)->auto_filter(false);
+    $this->template->content = View::forge($this->site_user["my_theme"]["system_name"]. '/welcome/index', ["data1" => $this->content_data], false)->auto_filter(false);
+    $this->template->theme = View::forge($this->site_user["my_theme"]["system_name"].'/theme', ["content" => $this->template->content, "site_user" => $this->site_user, "sub_menu" => $this->sub_menu, "is_top" => true, "image" => $this->image], false)->auto_filter(false);
+    $is_top = true;
+    $this->action_page($is_top);
     return $this->template;
 	}
   
   public function action_profile()
   {
     
-          // メインナビゲーションを取得
+        // メインナビゲーションを取得
+        /*
         $curl = Request::forge('http://syokudo.jpn.org/api/navigation/29', 'curl');
         $response = $curl->execute()->response();
         $list = \Format::forge($response->body,'json')->to_array();
-        
+        */
         // サブナビゲーションを取得
         $curl = Request::forge('http://syokudo.jpn.org/api/user_sub_menu/29', 'curl');
         $response = $curl->execute()->response();
@@ -178,7 +194,7 @@
       
       
 
-        
+        $list = [];
         $page = [];
         $current_link;
         foreach($list as $id => $data) {
@@ -195,7 +211,7 @@
             $current_link = $link_name;
           }
         }
-    
+    /*
         $current_link = "profile";
         if(!empty($current_link)) {
           if($page[$current_link]['type'] == 2) {
@@ -210,13 +226,81 @@
             
           }
         }
-    
+    */
         $data = html_entity_decode ($this->content_data);
-        $this->template->content = View::forge('syokudo/welcome/index', [], false)->auto_filter(false);
+        $this->template->content = View::forge($this->site_user["my_theme"]["system_name"].'/profile/index', [], false)->auto_filter(false);
         $this->template->content->set("data1", $data);
+    
+        $this->template->theme = View::forge($this->site_user["my_theme"]["system_name"].'/theme', ["content" => $this->template->content, "site_user" => $this->site_user, "sub_menu" => $this->sub_menu, "image" => $this->image], false)->auto_filter(false);
         return $this->template;
   }
   
+  public function action_list()
+  {
+      $commonModel = new Model_Common();
+    
+      // Request_Curl オブジェクトを作成
+      $curl = Request::forge('http://syokudo.jpn.org/api/node_list/user/'.$this->site_user["uid"], 'curl');
+      $response = $curl->execute()->response();
+      $list = \Format::forge($response->body,'json')->to_array();
+    
+      $nav = Input::get('nav');
+      $filter_nids = [];
+      $nav_info = $this->site_user["my_navigation"][$nav];
+      if(isset($this->site_user["my_nav_tags"]) && !empty($this->site_user["my_nav_tags"])) {
+        if(isset($this->site_user["my_nav_tags"][$nav])) {
+          $nav_tags = $this->site_user["my_nav_tags"][$nav];
+          $tags = $commonModel->select("my_node_tags", ['in' => ["tag_id" => $nav_tags]], true, 'nid');
+        if($tags !== false) {
+          $filter_nids = array_keys($tags);
+        }
+      }
+      // リクエストを実行
+      $response = $curl->execute()->response();
+      $list = \Format::forge($response->body,'json')->to_array();
+      foreach($list as $id => $data) {
+        $list[$id]["body_value"] = strip_tags(str_replace(PHP_EOL, '', mb_substr($data["body_value"], 0, 100)));
+        if(!in_array($data["nid"], $filter_nids)) {
+          unset($list[$id]);
+        }
+      }
+        
+      }
+    
+      
+      $this->template->content = View::forge($this->site_user["my_theme"]["system_name"].'/list', ["list" => $list, "site_user" => $this->site_user, "nav_info" => $nav_info], false);
+      $this->template->theme = View::forge($this->site_user["my_theme"]["system_name"].'/theme', ["content" => $this->template->content, "list" => $list, "site_user" => $this->site_user, "sub_menu" => $this->sub_menu, "image" => $this->image], false)->auto_filter(false);
+      
+      $common = new Component_Common();
+  }
+    
+  public function action_page($is_top = false)
+  {
+    $user = $this->component->getUser($this->site_user["uid"]);
+    if(Input::get('nav') && Input::get('nav') != 1) {
+      $nav_delta = Input::get('nav');
+      $is_top = null;
+    } else {
+      $nav_delta = 1;
+      $is_top = true;
+    }
+    if(isset($this->site_user["page_content"][$nav_delta])) {
+      foreach($this->site_user["page_content"][$nav_delta] as $id => $data) {
+        if(isset($this->site_user["page_content"][$nav_delta][$id]["caption_image"][$data["content_id"]])) {
+          $this->site_user["page_content"][$nav_delta][$id]["caption_image"] = $this->site_user["page_content"][$nav_delta][$id]["caption_image"][$data["content_id"]];
+        }
+        if(isset($this->site_user["page_content"][$nav_delta][$id]["table"][$data["content_id"]])) {
+          $this->site_user["page_content"][$nav_delta][$id]["table"] = $this->site_user["page_content"][$nav_delta][$id]["table"][$data["content_id"]];
+        }
+      }
+    } else {
+      $this->site_user["page_content"] = array();
+      $this->site_user["page_content"][$nav_delta] = array();
+    }
+    $this->template->content = View::forge($this->site_user["my_theme"]["system_name"].'/page', ["page_content" => $this->site_user["page_content"][$nav_delta], "site_user" => $this->site_user, "image" => $this->image], false)->auto_filter(false);
+    $this->template->theme = View::forge($this->site_user["my_theme"]["system_name"].'/theme', ["content" => $this->template->content, "site_user" => $this->site_user, "sub_menu" => $this->sub_menu, "is_top" => $is_top, "image" => $this->image], false)->auto_filter(false);  
+  }
+    
   public function action_menu()
   {
       // Request_Curl オブジェクトを作成
@@ -228,7 +312,10 @@
       foreach($list as $id => $data) {
         $list[$id]["body_value"] = strip_tags(str_replace(PHP_EOL, '', mb_substr($data["body_value"], 0, 100)));
       }
-      $this->template->content = View::forge('theme1/menu/index', ["list" => $list, "site_user" => $this->site_user], false);
+    
+    
+      $this->template->content = View::forge($this->site_user["my_theme"]["system_name"].'/menu/index', ["list" => $list, "site_user" => $this->site_user], false);
+      $this->template->theme = View::forge($this->site_user["my_theme"]["system_name"].'/theme', ["content" => $this->template->content, "list" => $list, "site_user" => $this->site_user, "sub_menu" => $this->sub_menu, "image" => $this->image], false)->auto_filter(false);
   }
   
   public function action_detail() {
@@ -241,9 +328,10 @@
         $data = \Format::forge($response->body,'json')->to_array();
       
         $data[0]["body_value"] = str_replace('/sites', 'http://syokudo.jpn.org/sites', $data[0]["body_value"]);
-        $this->template->image = (isset($data[0]["image"][0])) ? $data[0]["image"][0] : ""; 
+        $this->template->og_image = (isset($data[0]["image"][0])) ? $data[0]["image"][0] : ""; 
         $this->template->title = $data[0]["title"];
-        $this->template->content = View::forge('theme1/blog/detail', ["data" => $data[0], "title" => $this->template->title, "image" => $this->image, "site_user" => $this->site_user], false);
+        $this->template->content = View::forge($this->site_user["my_theme"]["system_name"].'/blog/detail', ["data" => $data[0], "title" => $this->template->title, "image" => $this->image, "site_user" => $this->site_user], false);
+        $this->template->theme = View::forge($this->site_user["my_theme"]["system_name"].'/theme', ["content" => $this->template->content, "site_user" => $this->site_user, "sub_menu" => $this->sub_menu, "image" => $this->image], false)->auto_filter(false);
     } else {
       return Response::forge(Presenter::forge('welcome/404'), 404);
     }
@@ -261,16 +349,19 @@
           $list[$id]["body_value"] = strip_tags(str_replace(PHP_EOL, '', mb_substr($data["body_value"], 0, 100)));
         }
     
-        $this->template->content = View::forge('theme1/menu/index', ["list" => $list, "site_user" => $this->site_user], false);
+        $this->template->content = View::forge($this->site_user["my_theme"]["system_name"].'/menu/index', ["list" => $list, "site_user" => $this->site_user], false);
+        $this->template->theme = View::forge($this->site_user["my_theme"]["system_name"].'/theme', ["content" => $this->template->content, "list" => $list, "site_user" => $this->site_user, "sub_menu" => $this->sub_menu, "image" => $this->image], false)->auto_filter(false);
   }
   
   public function action_map() 
   {
     
           // メインナビゲーションを取得
+    /*
         $curl = Request::forge('http://syokudo.jpn.org/api/navigation/29', 'curl');
         $response = $curl->execute()->response();
         $list = \Format::forge($response->body,'json')->to_array();
+        */
         
         // サブナビゲーションを取得
         $curl = Request::forge('http://syokudo.jpn.org/api/user_sub_menu/29', 'curl');
@@ -285,7 +376,7 @@
       
       
 
-        
+        $list = [];
         $page = [];
         $current_link;
         foreach($list as $id => $data) {
@@ -302,7 +393,7 @@
             $current_link = $link_name;
           }
         }
-    
+    /*
         $current_link = "map";
         if(!empty($current_link)) {
           if($page[$current_link]['type'] == 2) {
@@ -318,10 +409,13 @@
           }
         }    
         $data = html_entity_decode ($this->content_data);
+        */
+        $data = "";
         $this->template->title = 'Example Page';
         $this->template->content = View::forge('syokudo/welcome/index', ["site_user" => $this->site_user], false)->auto_filter(false);
         $this->template->content->set("data1", $data);
         $this->template->sub_menu = $this->sub_menu;
+        $this->template->theme = View::forge($this->site_user["my_theme"]["system_name"]. '/theme', ["content" => $this->template->content, "site_user" => $this->site_user, "sub_menu" => $this->sub_menu, "image" => $this->image], false)->auto_filter(false);
         return $this->template;
   }
   
@@ -341,8 +435,9 @@
         $response = $curl->execute()->response();
         
       }
-      $data = array();
-      $this->template->content = View::forge('theme1/contact/index', $data);
+      $data = array("site_user" => $this->site_user);
+      $this->template->content = View::forge($this->site_user["my_theme"]["system_name"].'/contact/index', $data);
+      $this->template->theme = View::forge($this->site_user["my_theme"]["system_name"].'/theme', ["content" => $this->template->content, "site_user" => $this->site_user, "sub_menu" => $this->sub_menu, "image" => $this->image], false)->auto_filter(false);
   }
 
 	/**

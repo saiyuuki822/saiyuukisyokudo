@@ -86,51 +86,47 @@ class Controller_Mypage extends Controller_My
       Session::set('navigation', $navigation);
     }
     
-        // メインナビゲーションを取得
-        $curl = Request::forge('http://syokudo.jpn.org/api/navigation/29', 'curl');
-        $response = $curl->execute()->response();
-        $list = \Format::forge($response->body,'json')->to_array();
+    // メインナビゲーションを取得
+    $curl = Request::forge('http://syokudo.jpn.org/api/navigation/29', 'curl');
+    $response = $curl->execute()->response();
+    $list = \Format::forge($response->body,'json')->to_array();
         
-        // サブナビゲーションを取得
-        $curl = Request::forge('http://syokudo.jpn.org/api/user_sub_menu/29', 'curl');
-        $response = $curl->execute()->response();
-        $sub_menu_list = \Format::forge($response->body,'json')->to_array();
+    // サブナビゲーションを取得
+    $curl = Request::forge('http://syokudo.jpn.org/api/user_sub_menu/29', 'curl');
+    $response = $curl->execute()->response();
+    $sub_menu_list = \Format::forge($response->body,'json')->to_array();
       
-        $curl = Request::forge('http://syokudo.jpn.org/api/file', 'curl');
-        $response = $curl->execute()->response();
-        $this->image = \Format::forge($response->body,'json')->to_array();
-        $this->image[0] = '/assets/img/anonymous_user.jpeg';
-      
-      
-      
-
-        
-        $page = [];
-        $current_link;
-        foreach($list as $id => $data) {
-          $list[$id]["menu_name"] = str_replace('HOME', 'Welcome', $list[$id]["menu_name"]);
-          $link_name = strtolower($list[$id]["menu_name"]);
-          $page[$link_name] = $data;
-          $path1 = explode('/', $_SERVER['PHP_SELF']);
-          if(isset($path1[2])) { 
-            $path1 = $path1[2];
-          } else {
-            Response::redirect('/welcome');
-          }
-          if(str_replace('/index.php/', '', $path1) == $link_name) {
-            $current_link = $link_name;
-          }
-        }
-        $current_link = "welcome";
-        if(!empty($current_link)) {
-          if($page[$current_link]['type'] == 2) {
-              $tid = $page[$current_link]['menu_id'];
-              $curl = Request::forge('http://syokudo.jpn.org/api/page/'. $tid, 'curl');
-              $response = $curl->execute()->response();
-              $data = \Format::forge($response->body,'json')->to_array();
-              $this->content_data = $data[0]["body_value"];
-          }
-        }
+    $curl = Request::forge('http://syokudo.jpn.org/api/file', 'curl');
+    $response = $curl->execute()->response();
+    $this->image = \Format::forge($response->body,'json')->to_array();
+    $this->image[0] = '/assets/img/anonymous_user.jpeg';
+              
+    $page = [];
+    $current_link;
+    foreach($list as $id => $data) {
+      $list[$id]["menu_name"] = str_replace('HOME', 'Welcome', $list[$id]["menu_name"]);
+      $link_name = strtolower($list[$id]["menu_name"]);
+      $page[$link_name] = $data;
+      $path1 = explode('/', $_SERVER['PHP_SELF']);
+      if(isset($path1[2])) { 
+        $path1 = $path1[2];
+      } else {
+        Response::redirect('/welcome');
+      }
+      if(str_replace('/index.php/', '', $path1) == $link_name) {
+        $current_link = $link_name;
+      }
+    }
+    $current_link = "welcome";
+    if(!empty($current_link)) {
+      if($page[$current_link]['type'] == 2) {
+          $tid = $page[$current_link]['menu_id'];
+          $curl = Request::forge('http://syokudo.jpn.org/api/page/'. $tid, 'curl');
+          $response = $curl->execute()->response();
+          $data = \Format::forge($response->body,'json')->to_array();
+          $this->content_data = $data[0]["body_value"];
+      }
+    }
     
     $data = html_entity_decode($this->content_data);
     $this->template->content = View::forge('syokudo/welcome/index', [], false)->auto_filter(false);

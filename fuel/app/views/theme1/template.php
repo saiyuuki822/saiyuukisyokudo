@@ -5,15 +5,94 @@
         
         <!-- viewport meta -->
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
+        <title>サイユウキ食堂<?php if(isset($title)): echo " | ". $title; endif;?></title>
+        <meta name="description" content="板橋本町駅から徒歩5分の仮想食堂です。">
+        <meta name="keywords" content=サイユウキ食堂,仮想食堂,板橋本町>
+        <?php if(isset($image)):?>
+        <meta property="og:image" content="<?php echo $image; ?>" />
+        <?php else: ?>
+        <meta property="og:image" content="http://mypotal.jpn.com/images/logo.jpg" />
+        <?php endif;?>
         <!-- Bootstrap CSS -->
+        <link href="/assets/css/toolkit.css" rel="stylesheet">
+        <link href="/assets/css/application.css" rel="stylesheet">
         <link rel="stylesheet" href="/css/style.css">
         <link rel="stylesheet" href="/css/theme1.css">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <script src="/assets/js/jquery.min.js"></script>
+        <script src="/assets/js/chart.js"></script>
+        <script src="/assets/js/toolkit.js"></script>
+        <script src="/assets/js/application.js"></script>
     </head>
-    <body>
       
 <body>
+
+  
+  <!--
+  <nav class="navbar navbar-inverse navbar-fixed-top app-navbar">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-main">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">
+        <img src="/assets/img/brand-white.png" alt="brand">
+      </a>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar-collapse-main">
+      <ul class="nav navbar-nav hidden-xs">
+        <li class="active">
+          <a href="/">Home!!</a>
+        </li>
+        <li>
+          <a href="/saiyuuki">MyPage</a>
+        </li>
+        <li>
+          <a data-toggle="modal" href="#msgModal">Messages</a>
+        </li>
+        <li>
+          <a href="docs/index.html">Docs</a>
+        </li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right m-r-0 hidden-xs">
+        <li>
+          <a class="app-notifications" href="notifications/index.html">
+            <span class="icon icon-bell"></span>
+          </a>
+        </li>
+        <li>
+          <button class="btn btn-default navbar-btn navbar-btn-avitar" data-toggle="popover" data-original-title="" title="">
+            <img class="img-circle" src="http://syokudo.jpn.org/sites/default/files/pictures/2019-05/saiyuuki.jpg">
+          </button>
+        </li>
+      </ul>
+      <form class="navbar-form navbar-right app-search" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" data-action="grow" placeholder="Search">
+        </div>
+      </form>
+      <ul class="nav navbar-nav hidden-sm hidden-md hidden-lg">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="profile/index.html">Profile</a></li>
+        <li><a href="notifications/index.html">Notifications</a></li>
+        <li><a data-toggle="modal" href="#msgModal">Messages</a></li>
+        <li><a href="docs/index.html">Docs</a></li>
+        <li><a href="#" data-action="growl">Growl</a></li>
+        <li><a href="login/index.html">Logout</a></li>
+      </ul>
+      <ul class="nav navbar-nav hidden">
+        <li><a href="#" data-action="growl">Growl</a></li>
+        <li><a href="/index.php/login">Logout</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+  -->
+  
+  
   <div class="container">
     <div class="masthead">
       <div class="row">
@@ -22,6 +101,7 @@
         </div>
         <div class="col-lg-8"></div>
       </div>
+      
       <div id="main-navigation" class="row">
         <div id="main-navigation-item" class="col-sm">
           <a href="/<?php echo $site_user['name'];?>" id="main-link">Welcome</a>
@@ -46,15 +126,19 @@
     <?php if(isset($is_top)):?>
     <div class="row" style="margin-top:20px;">
       <div class="col-lg-12">
-        <aside id="mainimg">
-        <img class="slide_file" src="/images/1.jpg" title="index.html">
-        <img class="slide_file" src="/images/2.jpg" title="<inde></inde>x.html">
-        <img class="slide_file" src="/images/3.jpg" title="index.html">
-        <input type="hidden" id="slide_loop" value="0">
-        <a href="index.html" id="slide_link">
-        <img id="slide_image" src="/images/1.jpg" alt="" width="977" height="260" />
-        <img id="slide_image2" src="/images/1.jpg" alt="" width="977" height="260" /></a>
-        </aside>
+<div id="carouselExampleSlidesOnly" class="carousel slide" data-ride="carousel">
+  <div class="carousel-inner">
+    <div class="carousel-item active">
+        <img src="/images/1.jpg" class="d-block w-100" alt="..." style="max-height:250px;min-height:250px;">
+    </div>
+    <div class="carousel-item">
+      <img src="/images/2.jpg" class="d-block w-100" alt="..." style="max-height:250px;min-height:250px;">
+    </div>
+    <div class="carousel-item">
+      <img src="/images/3.jpg" class="d-block w-100" alt="..." style="max-height:250px;min-height:250px;">
+    </div>
+  </div>
+</div>
       </div>
     </div>
     <?php endif;?>  
@@ -83,10 +167,10 @@
 
     
 
-
+ 
       <!-- Site footer -->
       <footer class="footer">
-        <p>© Company 2017</p>
+        <p>© フリーランス サイユウキ</p>
       </footer>
 
     </div> <!-- /container -->

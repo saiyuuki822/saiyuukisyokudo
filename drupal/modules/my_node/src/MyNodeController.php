@@ -17,15 +17,16 @@ class MyNodeController  extends ControllerBase {
     $nodeModel = new NodeModel();
     $offset = $request->query->get('offset');
     $limit = $request->query->get('limit');
+    $tag_id = $request->query->get('tag_id');
     
     if($type == 'all') {
-      $result = json_decode(json_encode($nodeModel->get_node_list(null, null, $offset, $limit)), true);
+      $result = json_decode(json_encode($nodeModel->get_node_list(null, null, $offset, $limit, $tag_id)), true);
     } else if($type == 'taxonomy') {
-      $result = json_decode(json_encode($nodeModel->get_node_list(2, $entity_id, $offset, $limit)), true);
+      $result = json_decode(json_encode($nodeModel->get_node_list(2, $entity_id, $offset, $limit, $tag_id)), true);
     } else if($type == 'user') {
-      $result = json_decode(json_encode($nodeModel->get_node_list(1, $entity_id, $offset, $limit)), true);
+      $result = json_decode(json_encode($nodeModel->get_node_list(1, $entity_id, $offset, $limit, $tag_id)), true);
     } else if($type == 'node') {
-      $result = json_decode(json_encode($nodeModel->get_node_list(3, $entity_id, $offset, $limit)), true);
+      $result = json_decode(json_encode($nodeModel->get_node_list(3, $entity_id, $offset, $limit, $tag_id)), true);
     }
     
     foreach($result as $id => $data) {
@@ -233,7 +234,7 @@ class MyNodeController  extends ControllerBase {
     $field_image = $request->query->get('field_image1');
     $caption = $request->query->get('caption1');
     $i = 1;
-    while(isset($caption)) {
+    while(isset($caption) && $i <= 8) {
       $node = entity_load('node', $node->nid->value);
       $paragraph = Paragraph::create(['type' => 'image_and_caption',]);
       $paragraph->set('field_caption', $caption); 
@@ -274,25 +275,141 @@ class MyNodeController  extends ControllerBase {
     $image_data = file_get_contents($image);
     $file = file_save_data($image_data, "public://". basename($image).".jpg", FILE_EXISTS_REPLACE);
     $file_url = file_create_url("public://". basename($image).".jpg");
-    echo (json_encode(array('file_url' => $file_url), true));
+    echo (json_encode(array('file_url' => $file_url, 'fid' => $file->id()), true));
     exit(1);
   }
   
-  public function node_edit(Request $request) {  
+  public function post_edit(Request $request) {
+    \Drupal::logger('my_node')->error(print_r($_POST, true));
+    $nid = $_POST["edit_nid"];
+    $node = node_load($nid);
+    $node->title = $_POST['post_title'];
+    $node->body = $_POST['post_body'];
+    $node->field_public_scope = $_POST["public_scope"];
+    $image = $_FILES['post_file']['tmp_name'];
+    if(isset($image) && strlen($image)) {
+      $image_data = file_get_contents($image); 
+      $file = file_save_data($image_data, "public://". basename($image).".jpg", FILE_EXISTS_REPLACE);
+      $node->field_image = $file->id();
+    }
+    $node->field_image_and_caption = [];
+    $result = $node->save();
+    $nodeModel = new NodeModel();
+    if(isset($_POST["tags"]) && is_numeric($_POST["tags"])) {
+      $nodeModel->save_my_tags($nid, $_POST["tags"]);
+    }
+    $nodeModel->delete_image_caption($nid);
+    $field_image = $_FILES['field_image1']['tmp_name'];
+    $caption = $_POST['caption1'];
+    $i = 1;
+    $current = [];
+    
+    while(isset($caption) && $i <= 8) {
+      \Drupal::logger('my_node')->error("image_caption_idx:".$i);
+      $image_caption = $nodeModel->get_entity('field_image_and_caption', 'node', $nid, ($i-1));
+      if($image_caption !== false && isset($image_caption[0])) {
+        $nodeModel->delete_image_caption($image_caption[0]->field_image_and_caption_target_id);
+        $image_data = file_get_contents($field_image);
+        if(isset($image_data) && strlen($image_data) >= 1) {
+          $paragraph = Paragraph::create(['type' => 'image_and_caption']);
+          $file = file_save_data($image_data, "public://". basename($field_image).".jpg", FILE_EXISTS_REPLACE);
+          if($file->id()) {
+            $paragraph->set('field_image', $file->id());
+            \Drupal::logger('my_node')->error("fid:".$file->id());
+          }
+        } else {
+          //$image_caption = $nodeModel->get_entity('field_image_and_caption', 'node', $nid, ($i-1));
+          //$paragraph = Paragraph::load($image_caption[0]->field_image_and_caption_target_id);
+          //\Drupal::logger('my_node')->error("paragraph_id:".$image_caption[0]->field_image_and_caption_target_id);
+          $paragraph = Paragraph::create(['type' => 'image_and_caption']);
+          $fid = $_POST["fid".$i];
+          $paragraph->set('field_image', $fid);
+        }
+        $paragraph->set('field_caption', $caption);
+        $paragraph->isNew();
+        $paragraph->save();
+        $current[$i-1] = array(
+          'target_id' => $paragraph->id(),
+          'target_revision_id' => $paragraph->getRevisionId(),
+        );
+        
+        if(isset($_POST['caption'.$i+1]) && isset($_FILES['field_image'.$i+1]) && strlen($_POST['caption'.$i+1]) >= 1 && strlen($_FILES['field_image'.$i+1]) >= 1) {
+          $caption = $_POST['caption'.$i+1];
+          if(isset($_FILES['field_image'.$i+1]["tmp_name"])) {
+            $field_image = $_FILES['field_image'.$i+1]["tmp_name"];
+          } else {
+            $field_image = null;
+          }
+        } else {
+          $caption = null;
+          $field_image = null;
+        }
+      }
+      $i = $i+1;
+    }
+    \Drupal::logger('my_node')->error(print_r($current, true));
+    $node->set('field_image_and_caption', $current);
+    $node->field_image_and_caption = $current;
+    $node->save();
+    \Drupal::logger('my_node')->error("55555");
+    echo (json_encode(array('result' => $result, 'nid' => $nid), true));
+    exit(1);
+  }
+  
+  public function node_edit(Request $request) {
     $nid = $request->query->get('nid');
     $node = node_load($nid);
     $node->title = $request->query->get('title');
     $node->body = $request->query->get('body');
     $node->field_public_scope = $request->query->get('public_scope');
-    $node->field_page_menu = $request->query->get('navigation');
     $image = $request->query->get('image');
     if(isset($image) && strlen($image)) {
-     $image_data = file_get_contents($image); 
-     $file = file_save_data($image_data, "public://". basename($image).".jpg", FILE_EXISTS_REPLACE);
-     $node->field_image = $file->id();
+      $image_data = file_get_contents($image); 
+      $file = file_save_data($image_data, "public://". basename($image).".jpg", FILE_EXISTS_REPLACE);
+      $node->field_image = $file->id();
     }
     $result = $node->save();
-    echo (json_encode(array('result' => $result, 'nid' => $node->nid->value), true));
+    //画像と文章のセットの保存
+    $field_image = $request->query->get('field_image1');
+    $caption = $request->query->get('caption1');
+    $i = 1;
+    $current = [];
+    $nodeModel = new NodeModel();
+    \Drupal::logger('my_node')->error("00000");
+    while(isset($caption) && $i <= 8) {
+      $image_data = file_get_contents($field_image);
+      \Drupal::logger('my_node')->error("11111");
+      if(isset($image_data) && strlen($image_data) >= 1) {
+        $paragraph = Paragraph::create(['type' => 'image_and_caption']);
+        $file = file_save_data($image_data, "public://". basename($field_image).".jpg", FILE_EXISTS_REPLACE);
+        if($file->id()) {
+          $paragraph->set('field_image', $file->id());
+        }
+        \Drupal::logger('my_node')->error("22222");
+      } else {
+        \Drupal::logger('my_node')->error("33333");
+        $image_caption = $nodeModel->get_entity('field_image_and_caption', 'node', $nid, ($i-1));
+        \Drupal::logger('my_node')->error("paragraph_id:". $image_caption[0]->field_image_and_caption_target_id);
+        $paragraph = Paragraph::load($image_caption[0]->field_image_and_caption_target_id);
+      }
+      $paragraph->set('field_caption', $caption);
+      $paragraph->isNew();
+      $paragraph->save();
+      $current[] = array(
+        'target_id' => $paragraph->id(),
+        'target_revision_id' => $paragraph->getRevisionId(),
+      );
+      $i++;
+      $caption = $request->query->get('caption'.$i);
+      $field_image = $request->query->get('field_image'.$i);
+      \Drupal::logger('my_node')->error("44444");
+    }
+    \Drupal::logger('my_node')->error(print_r($current, true));
+    $node->set('field_image_and_caption', $current);
+    $node->field_image_and_caption = $current;
+    $node->save();
+    \Drupal::logger('my_node')->error("55555");
+    echo (json_encode(array('result' => $result, 'nid' => $nid), true));
     exit(1);
   }
   
@@ -330,6 +447,7 @@ class MyNodeController  extends ControllerBase {
   
   public function user_post(Request $request) {
     $uid = $request->query->get('uid');
+    
     $values = array(
       'field_user_name' => $request->query->get('user_name'),
       'field_user_body' => $request->query->get('user_body'),
@@ -339,7 +457,7 @@ class MyNodeController  extends ControllerBase {
       'pass' => $request->query->get('password'),
       'status' => 0,
     );
-    if(!isset($uid)) {
+    if(!isset($uid) || $uid == "") {
       $picture = $request->query->get('picture');
       $values = array(
         'field_user_name' => $request->query->get('user_name'),
@@ -356,16 +474,17 @@ class MyNodeController  extends ControllerBase {
         $values['user_picture'] = array('target_id' => $file->id());
       }
       $account = entity_create('user', $values);
+
       try {
         $result = $account->save();
-
+        
+        $uid = $account->uid->value;
       } catch (Exception $e) {
         $result = false;
         \Drupal::logger('type')->error($e->getMessage());
       }
       if(!$result) {
         $values = $result;
-        \Drupal::logger('type')->error("eeeeeeeeeeeeeeeeeeeee");
       }
     } else {
       $user = \Drupal\user\Entity\User::load($uid);
@@ -376,8 +495,22 @@ class MyNodeController  extends ControllerBase {
       $user->set('field_user_name', $values['field_user_name']);
       $user->set('field_user_body', $values['field_user_body']);
       $user->save();
+      $uid = $user->uid->value;
     }
-    echo (json_encode(array('result' => $values), true));
+    echo (json_encode(array('result' => ["uid" => $uid]), true));
+    exit(1);
+  }
+  
+  public function test(Request $request) {
+    $node = node_load(305);
+    $node->field_image_and_caption = [];
+    $node->save();
+    
+    $nodeModel = new NodeModel();
+    $nodeModel->delete_image_caption(305);
+//    $image_caption = $nodeModel->get_entity('field_image_and_caption', 'node', 235, 0);
+//    $nodeModel->update_paragraph__field_value("field_caption", 751, "中田佳奈♪");
+//    var_dump($image_caption);
     exit(1);
   }
 }

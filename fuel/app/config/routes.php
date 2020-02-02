@@ -29,15 +29,23 @@ $my_portal = 	array(
 	':name/map' => 'myportal/map',
 	':name/contact' => 'myportal/contact',
 	':name' => 'myportal/index',
+  ':name/list' => 'myportal/list',
+  ':name/page' => 'myportal/page',
 );
+
+$myportal_custom = array();
 
 $user = new Model_User();
 $user_data = $user->get_user(29);
 
-foreach($my_portal as $id => $data) {
-  unset($my_portal[$id]);
-  $id = str_replace(":name", $user_data["name"], $id);
-  $my_portal[$id] = $data;
+$user_list = $user->get_user();
+$idx = 0;
+foreach($user_list as $user_data) {
+  foreach($my_portal as $id => $data) {
+    $id = str_replace(":name", $user_data["name"], $id);
+    $myportal_custom[$id] = $data;
+    $idx++;
+  }
 }
 
 $page = array(
@@ -51,6 +59,6 @@ $page = array(
 	'hello(/:name)?' => array('welcome/hello', 'name' => 'hello'),
 );
 
-$page = array_merge($page, $my_portal);
+$page = array_merge($page, $myportal_custom);
 
 return $page;

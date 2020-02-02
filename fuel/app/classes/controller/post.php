@@ -70,10 +70,10 @@ class Controller_Post extends Controller_My
       echo json_encode(array('title' => $title, 'body' => $body, 'file' => $cfile), true);
       exit(1);
     }
-    Session::delete('user');
-    $this->template->title = 'Example Page';
-    $this->template->content = View::forge('login/index', [], false)->auto_filter(false);
-    return $this->template;
+//    Session::delete('user');
+//    $this->template->title = 'Example Page';
+//    $this->template->content = View::forge('login/index', [], false)->auto_filter(false);
+//    return $this->template;
 	}
 
 	/**
@@ -85,6 +85,7 @@ class Controller_Post extends Controller_My
 	 */
 	public function action_edit()
 	{
+    \Log::error("action_edit");
     if(Input::post() || Input::get()) {
       if(Input::get()) {
         $nid = Input::get('post_nid');
@@ -95,14 +96,21 @@ class Controller_Post extends Controller_My
       $curl->set_params(array('nid' => $nid));
       $response = $curl->execute()->response();
       $result = \Format::forge($response->body,'json')->to_array();
+      \Log::error(print_r($result[0]["image_caption"], true));
       $node = new Model_Node();
       $tags = $node->get_node_tags($nid);
       if(isset($tags["tag_id"])) {
         $result[0]["tag_id"] = $tags["tag_id"];
         $result[0]["tag_name"] = $tags["name"];
-       }
-      
-      
+      }
+      /*
+      if(isset($result[0]["image_caption"]) && is_array($result[0]["image_caption"])) {
+        foreach($result[0]["image_caption"] as $idx => $image_caption) {
+          $result[0]["image_caption"][$idx]["field_image_url"] = $this->image[$image_caption["field_image"]]; 
+          $result[0]["image_caption"][$idx]["fid"] = $image_caption["field_image"]; 
+        }
+      }
+      */
       header("Access-Control-Allow-Origin: *");
       header("Content-Type: application/json; charset=utf-8");
       echo json_encode($result, true);

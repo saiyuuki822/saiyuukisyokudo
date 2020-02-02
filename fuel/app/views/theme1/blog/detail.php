@@ -15,7 +15,7 @@ header('Content-type: text/html');
       <button class="sharer button" data-sharer="facebook" data-url="<?php echo (empty($_SERVER["HTTPS"]) ? "http://" : "https://") . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"];?>" style="background-color: #759ef0;color:white;">Facebook</button>
     </p>
   </div>
-<?php echo $data["body_value"] ;?>
+<?php echo $data["body_value"] ;?><br>
   
 <img src="<?php echo $data['image'][0];?>" width="400" height="400" />
 

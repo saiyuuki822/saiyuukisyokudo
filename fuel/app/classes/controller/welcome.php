@@ -25,7 +25,8 @@ class Controller_Welcome extends Controller_My
     public function before()
     {
       parent::before();
-      $this->template->login_user = Session::get('user');;
+      $this->template->login_user = Session::get('user');
+      $this->template->is_settings = false;
     }
   
 	/**
@@ -45,8 +46,20 @@ class Controller_Welcome extends Controller_My
     if(!isset($login_user)) {
       $login_user['uid'] = 0;
     }
-    
-    $node_list = $node->get_node();
+    if(Input::get("offset")) {
+      $offset = Input::get("offset");
+    } else {
+      $offset = 0;
+    }
+    if(Input::get("limit")) {
+      $limit = Input::get("limit");
+    } else {
+      $limit = 10;
+    }
+    $curl = Request::forge('http://syokudo.jpn.org/api/node_list/all/data?'."?offset=".$offset."&limit=".$limit, 'curl');
+    $curl->set_method('post');
+    $response = $curl->execute()->response();
+    $node_list = \Format::forge($response->body,'json')->to_array();
     foreach($node_list as $key => $value) {
       $good_user = $node->get_good_user_data($value['nid']);
       
@@ -77,10 +90,11 @@ class Controller_Welcome extends Controller_My
       $follow = $user->get_user_follow($login_user['uid']);
       $favorite_url = $user->get_user_favorite_url($login_user['uid']);
       // メインナビゲーションを取得
-      $curl = Request::forge('http://syokudo.jpn.org/api/navigation/'.$login_user['uid'], 'curl');
-      $response = $curl->execute()->response();
-      $list = \Format::forge($response->body,'json')->to_array();
-      $navigation = $list;
+      //$curl = Request::forge('http://syokudo.jpn.org/api/navigation/'.$login_user['uid'], 'curl');
+      //$response = $curl->execute()->response();
+      //$list = \Format::forge($response->body,'json')->to_array();
+      //$navigation = $list;
+      $navigation = [];
       Session::set('navigation', $navigation);
     } else {
       //Response::redirect('/index.php/login', 'refresh', 200);
@@ -100,6 +114,8 @@ class Controller_Welcome extends Controller_My
     //$this->template->user_navigation = $navigation;
     $this->template->image = $this->image;
     $this->template->is_top = true;
+    $this->template->sidebar_left = View::forge('sidebar_left', ['image' => $this->image, 'user' => $login_user], false)->auto_filter(false);
+    $this->template->sidebar_right = View::forge('sidebar_right', ['image' => $this->image, 'user' => $login_user], false)->auto_filter(false);
     $this->template->content = View::forge('welcome/index', ["list" => $node_list, 'image' => $this->image, "comment_list" => $comment_list, 'user' => $login_user], false)->auto_filter(false);
     return $this->template;
 	}

@@ -126,4 +126,20 @@ my_node14:
   requirements:
     _permission: 'access content'
     
+my_node17:
+  path: '/api/test'
+  defaults:
+    _title: 'API Test'
+    _controller: '\Drupal\my_node\MyNodeController::test'
+  requirements:
+    _permission: 'access content'
+   
+my_node18:
+  path: '/api/post_edit'
+  defaults:
+    _title: 'API Test'
+    _controller: '\Drupal\my_node\MyNodeController::post_edit'
+  requirements:
+    _permission: 'access content'
+    
 

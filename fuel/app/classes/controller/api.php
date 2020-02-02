@@ -43,7 +43,6 @@ class Controller_Api extends Controller_My
       $user_name = Input::post('user_name');
       $user_body = Input::post('user_body');
       $edit_uid = Input::post('edit_uid');
-      \Log::error("edit_uid:".$edit_uid);
       $file = $_FILES['picture']['tmp_name'];
       $cfile = new CURLFile($_FILES["picture"]["tmp_name"],'image/jpeg','picture');
       $curl = Request::forge('http://syokudo.jpn.org/api/user_post', 'curl');
@@ -55,8 +54,16 @@ class Controller_Api extends Controller_My
       \Log::error("user_postuser_postuser_post");
       $response = $curl->execute()->response();
       \Log::error("user_postuser_postuser_post2");
+      
       $result = \Format::forge($response->body,'json')->to_array();
+      \Log::error("uid:".$result["result"]["uid"]);
+      $_POST["uid"] = $result["result"]["uid"];
+      $_POST["token"] = "abcdefg";
       \Log::error(print_r($result));
+      $uid = $result["result"]["uid"];
+      $token = md5($name. ":". $password);
+      $commonModel = new Model_Common();
+      $commonModel->insert('my_pass_token', ["uid" => $uid, "token" => $token]);
       if($result !== false && strlen($mail) >= 1 && filter_var($mail, FILTER_VALIDATE_EMAIL)) {
         if(!(isset($edit_uid) && strlen($edit_uid) >= 1)) {
           $email = Email::forge();
@@ -68,7 +75,11 @@ class Controller_Api extends Controller_My
           try
           {
             $user = new Model_User();
-            $pass = $user->get_user_activate_password($name);
+
+            $pass_token = $commonModel->select("my_pass_token", ["uid" => $uid]);
+            $pass = $pass_token["token"];
+            //$pass = $user->get_user_activate_password($name);
+
             $params["pass"] = $pass;
             $email->body(\View::forge('email/activate', $params));
             $email->send();
@@ -94,10 +105,28 @@ class Controller_Api extends Controller_My
   
   public function action_activate($pass)
   {
+    
+    $commonModel = new Model_Common();
+    
     $user = new Model_User();
     $uid = $user->get_user_uid_by_activate_password($pass);
+    
     if($uid !== false) {
       $user->update_user_activate_status($uid, 1);
+      $commonModel->insert('my_user_theme', ["uid" => $uid, "theme_id" => 1, "theme_color" => 1]);
+      $commonModel->insert('my_navigation', ["uid" => $uid, "name" => "Home", "type" => "page", "delta" => 1]);
+      $content_id = $commonModel->insert('my_page_content', ["title" => "ようこそ、私のポータルサイトへ", "type" => "only_sentence", "uid" => $uid, "delta" => 1, "sort" => 1]);
+      $commonModel->insert('my_page_content_caption_image', ["content_id" => $content_id, "caption" => "よろしくお願いします。"]);
+      $commonModel->insert('my_navigation', ["uid" => $uid, "name" => "Aboutas", "type" => "page", "delta" => 2]);
+      $commonModel->insert('my_navigation', ["uid" => $uid, "name" => "LifeStyle", "type" => "content", "delta" => 3]);
+      $commonModel->insert('my_navigation', ["uid" => $uid, "name" => "Hobby", "type" => "content", "delta" => 4]);
+      $commonModel->insert('my_navigation', ["uid" => $uid, "name" => "Blog", "type" => "content", "delta" => 5]);
+      $tag_id = $commonModel->insert('my_tags', ["uid" => $uid, "name" => "ライフスタイル", "sort" => 1]);
+      $commonModel->insert('my_navigation_tag', ["uid" => $uid, "delta" => 3, "tag_id" => $tag_id]);                                         
+      $tag_id = $commonModel->insert('my_tags', ["uid" => $uid, "name" => "趣味", "sort" => 2]);
+      $commonModel->insert('my_navigation_tag', ["uid" => $uid, "delta" => 4, "tag_id" => $tag_id]);
+      $tag_id = $commonModel->insert('my_tags', ["uid" => $uid, "name" => "BLOG", "sort" => 3]);
+      $commonModel->insert('my_navigation_tag', ["uid" => $uid, "delta" => 5, "tag_id" => $tag_id]);
     }
     
     Response::redirect('/index.php/login?activate=1', 'refresh', 200);
@@ -107,6 +136,30 @@ class Controller_Api extends Controller_My
 
   public function action_login()
   {
+    \Log::error("action_login");
+    $commonModel = new Model_Common();
+    $user = new Model_User();
+    if(Input::post('uid')) {
+      $login_user = $user->get_user(Input::post('uid'));
+      $login_user["navigation"] = [];
+      $login_user["picture"] = $this->image[$login_user["picture"]];
+      $follow = $user->get_user_follow($login_user['uid']);
+      foreach($follow as $id => $data) {
+        $follow[$id]["picture"] = $this->image[$data["picture"]];
+      }
+      $login_user['follow'] = $follow;
+      $good_node = $user->get_user_good_node($login_user['uid']);
+      $login_user['good'] = $good_node;
+      $ungood_node = $user->get_user_ungood_node($login_user['uid']);
+      $login_user['but'] = $ungood_node;
+      $favorite_node = $user->get_user_favorite_node($login_user['uid']);
+      $login_user['favorite'] = $favorite_node;
+      $tags = $user->search_tags($login_user["uid"]);
+      $login_user['tags'] = $tags;
+      $pass_token = $commonModel->select("my_pass_token", ["uid" => $login_user["uid"]]);
+      $token = $pass_token["token"];
+      $login_user["token"] = $token;
+    } else {
       $name = Input::post('name');
       $password = Input::post('password');
       $curl = Request::forge('http://syokudo.jpn.org/api/user_login', 'curl');
@@ -114,13 +167,8 @@ class Controller_Api extends Controller_My
       $response = $curl->execute()->response();
       $result = \Format::forge($response->body,'json')->to_array();
       if(isset($result['uid'])) {
-        $user = new Model_User();
         $login_user = $user->get_user($result['uid']);
-        // メインナビゲーションを取得
-        $curl = Request::forge('http://syokudo.jpn.org/api/navigation/'.$login_user['uid'], 'curl');
-        $response = $curl->execute()->response();
-        $list = \Format::forge($response->body,'json')->to_array();
-        $login_user["navigation"] = $list;
+        $login_user["navigation"] = [];
         $login_user["picture"] = $this->image[$login_user["picture"]];
         $follow = $user->get_user_follow($login_user['uid']);
         foreach($follow as $id => $data) {
@@ -135,13 +183,20 @@ class Controller_Api extends Controller_My
         $login_user['favorite'] = $favorite_node;
         $tags = $user->search_tags($login_user["uid"]);
         $login_user['tags'] = $tags;
+        $pass_token = $commonModel->select("my_pass_token", ["uid" => $login_user["uid"]]);
+        $token = $pass_token["token"];
+        $login_user["token"] = $token;
       } else {
         $login_user = ["uid" => 0];
       }
-      header("Access-Control-Allow-Origin: *");
-      header("Content-Type: application/json; charset=utf-8");
-      echo (json_encode($login_user, true));
-      exit(1);
+    }
+    //$pass_token = $commonModel->select("my_pass_token", ["uid" => $login_user["uid"]);
+    //$token = $pass_token["token"];
+    //$login_user["token"] = $token;
+    header("Access-Control-Allow-Origin: *");
+    header("Content-Type: application/json; charset=utf-8");
+    echo (json_encode($login_user, true));
+    exit(1);
   }
   
   public function action_user($uid)
@@ -167,7 +222,6 @@ class Controller_Api extends Controller_My
   
   public function action_node_list($type, $entity_id)
   {
-    
     if(Input::get("offset")) {
       $offset = Input::get("offset");
     } else {
@@ -181,8 +235,20 @@ class Controller_Api extends Controller_My
     
     $node = new Model_Node();
     $user = new Model_User();
-    $curl = Request::forge('http://syokudo.jpn.org/api/node_list/'.$type. "/".$entity_id."?offset=".$offset."&limit=".$limit, 'curl');
+    $query_string = "?offset=".$offset."&limit=".$limit;
+    if(Input::post("tag_id") || Input::get("tag_id")) {
+      if(Input::post("tag_id")) {
+        $post_tag_id = Input::post("tag_id");
+      } else {
+        $post_tag_id = Input::get("tag_id");
+      }
+      if(is_numeric($post_tag_id)) {
+        $query_string = $query_string. "&tag_id=".$post_tag_id;
+      }
+    }
+    $curl = Request::forge('http://syokudo.jpn.org/api/node_list/'.$type. "/".$entity_id. $query_string, 'curl');
     $curl->set_method('post');
+    
     $response = $curl->execute()->response();
     $list = \Format::forge($response->body,'json')->to_array();
     
@@ -241,15 +307,9 @@ class Controller_Api extends Controller_My
         foreach($list[$id]["comment"] as $comment_id => $comment_data) {
           $list[$id]["comment"][$comment_id]["picture"] = $this->image[$comment_data["picture"]];
         }
-        
       }
-      
       //タグが付いている場合
       $tags = $node->get_node_tags($nid);
-      \Log::error("tagstagstagstagstags");
-      \Log::error($nid);
-      \Log::error(print_r($tags, true));
-      
       if(isset($tags["tag_id"])) {
         $list[$id]["tag_id"] = $tags["tag_id"];
         $list[$id]["tag_name"] = $tags["name"];
@@ -260,12 +320,13 @@ class Controller_Api extends Controller_My
             unset($list[$id]);
           }
         }
-       }
+      }
     }
     $next = false;
     if(count($list) >= $limit) {
       $next = true;
     }
+    
     header("Access-Control-Allow-Origin: *");
     header("Content-Type: application/json; charset=utf-8");
     echo (json_encode(["list" => $list, "next" => $next], true));
@@ -287,6 +348,8 @@ class Controller_Api extends Controller_My
     $node = new Model_Node();
     $user = new Model_User();
     $word = Input::post("word");
+    $url = 'http://syokudo.jpn.org/api/node_search/'.$type. "/".$entity_id. "/".$word."?offset=".$offset."&limit=".$limit;
+    \Log::error($url);
     $curl = Request::forge('http://syokudo.jpn.org/api/node_search/'.$type. "/".$entity_id. "/".$word."?offset=".$offset."&limit=".$limit, 'curl');
     $response = $curl->execute()->response();
     $list = \Format::forge($response->body,'json')->to_array();
@@ -348,8 +411,6 @@ class Controller_Api extends Controller_My
       //タグが付いている場合
       $tags = $node->get_node_tags($nid);
       
-      \Log::error(print_r($tags, true));
-      
       if(isset($tags["tag_id"])) {
         $list[$id]["tag_id"] = $tags["tag_id"];
         $list[$id]["tag_name"] = $tags["name"];
@@ -372,6 +433,15 @@ class Controller_Api extends Controller_My
     exit(1);
   }
   
+  public function action_theme() {
+    $result = $this->component->getTheme();
+    $list = $this->add_image_field($result, "image_id", "image");
+    header("Access-Control-Allow-Origin: *");
+    header("Content-Type: application/json; charset=utf-8");
+    echo (json_encode(["list" => $list], true));
+    exit(1);
+  }
+  
   public function action_user_list()
   {
     $curl = Request::forge('http://syokudo.jpn.org/api/user_list/all', 'curl');
@@ -387,21 +457,20 @@ class Controller_Api extends Controller_My
   }
   
   public function action_post()
-  {
-    \Log::error("action_post");
+  { 
     $node = new Model_Node();
     if(Input::post()) {
       $uid = Input::post('uid');
-      \Log::error("uuuuuuuuuuuuuuuuuuuuuuuuu");
       \Log::error($uid);
-      \Log::error(print_r(Input::post(), true));
-      \Log::error(print_r($_FILES, true));
       $title = Input::post('post_title');
+      \Log::error($title);
       $body  = Input::post('post_body');
       $navigation = Input::post('navigation');
       $public_scope = Input::post('public_scope');
-      $file = $_FILES['post_file']['tmp_name'];
-      $cfile = new CURLFile($_FILES["post_file"]["tmp_name"],'image/jpeg','test_name');
+      if(isset($_FILES['post_file'])) {
+        $file = $_FILES['post_file']['tmp_name'];
+        $cfile = new CURLFile($_FILES["post_file"]["tmp_name"],'image/jpeg','test_name');
+      }
       $edit_nid = null;
       if(Input::post('edit_nid')) {
         $edit_nid = Input::post('edit_nid');
@@ -409,16 +478,32 @@ class Controller_Api extends Controller_My
       if(isset($edit_nid) && strlen($edit_nid)) {
         $post_type = "edit";
         $curl = Request::forge('http://syokudo.jpn.org/api/node_edit', 'curl');
+        $is_edit = true;
       } else {
         $post_type = "regist";
         \Log::info("node_post!!!");
         $curl = Request::forge('http://syokudo.jpn.org/api/node_post', 'curl');
       }
-      $params = array('title' => $title, 'body' => $body, 'uid' => $uid, 'navigation' => $navigation, 'image' => $file, 'nid' => $edit_nid, 'public_scope' => $public_scope);
+      $params = array('title' => $title, 'body' => $body, 'uid' => $uid, 'navigation' => $navigation,'nid' => $edit_nid, 'public_scope' => $public_scope);
+      if(isset($_FILES['post_file'])) {
+        $params["image"] = $file;
+      }
+      
+      /*
+      fileUpload
+      $result = $this->commonModel->select("my_page_content", ['uid' => $uid, 'delta' => $delta, 'sort' => $idx], false);
+      $this->commonModel->update("my_page_content", ['title' => $params["title".$idx], 'type' => $params["type".$idx]], 
+      $this->commonModel->insert("my_page_content_table_data", [
+        'content_id' => $result["content_id"], 
+        'sort' => $sort_idx, 
+        'title' => $params["table_title".$table_idx."_".$sort_idx], 
+        'sentence' => $params["table_sentence".$table_idx."_".$sort_idx], 
+      ]);
+      */
+      $commonModel = new Model_Common();
       $i = 1;
       while(isset($_FILES['field_image'.$i]['tmp_name'])) {
         $params['field_image'.$i] = $_FILES['field_image'.$i]['tmp_name'];
-        \Log::info($params['field_image'.$i]);
         $i++;
       }
       $i = 1;
@@ -435,18 +520,26 @@ class Controller_Api extends Controller_My
       $curl->set_params($params);
       $response = $curl->execute()->response();
       $result = \Format::forge($response->body,'json')->to_array();
+      
+      
       \Log::error("tags if before");
       if(Input::post('tags')) {
         \Log::error("tags if in");
         $tag_id = Input::post('tags');
         \Log::error($tag_id);
+        
         $nid  = $result["nid"];
         \Log::error($nid);
         $node->regist_node_tags($nid, $tag_id);
       }
       header("Access-Control-Allow-Origin: *");
       header("Content-Type: application/json; charset=utf-8");
-      echo json_encode(array('post_type' => $post_type,'title' => $title, 'body' => $body, 'file' => $cfile, 'nid' => $result["nid"]), true);
+
+      $data = array('post_type' => $post_type,'title' => $title, 'body' => $body, 'nid' => $result["nid"]);
+      if(isset($cfile)) {
+        $data['file'] = $cfile;
+      }
+      echo json_encode($data, true);
       exit(1);
     }
   }
@@ -475,29 +568,49 @@ class Controller_Api extends Controller_My
     exit(1);
 	}
   
+  public function action_activity_count()
+  {
+    $user = new Model_User();
+    if(Input::post('uid')) {
+      $uid = Input::post('uid');
+    } else {
+      $uid = Input::get('uid');
+    }
+    $count = $user->get_user_activity_no_read_count($uid);
+    echo (json_encode(["count" => $count], true));
+    exit(1);
+  }
+
   public function action_good()
   {
     if(Input::post()) {
-      $uid = Input::post('uid');
-      $author_uid = Input::post('author_uid');
-      
       $node = new Model_Node();
       $user = new Model_User();
+      $uid = Input::post('uid');
+      $author_uid = Input::post('author_uid');
+      $author = $user->get_user($author_uid);
+      $return = ["nid" => Input::post('nid'), "uid" => Input::post('uid'), "author_uid" => $author_uid];
       try {
         \Log::error("aaaaaaaaaaaaaaaaaa");
         $node->add_good_user(Input::post('uid'), Input::post('nid'));
         $type = 'good';
-        $result = $user->get_user_activity(Input::post('author_uid'), Input::post('uid'), $type, Input::post('nid'));
+        $result = $user->get_user_activity($author_uid, Input::post('uid'), $type, Input::post('nid'));
         \Log::error("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
         \Log::error(print_r($result, true));
         if($result !== false && count($result) >= 1) {
-          $user->update_user_activity(Input::post('author_uid'), Input::post('uid'), $type, Input::post('nid'), 0);  //が貴方の<a href='#node-". Input::post('nid'). "' class='activity'>".Input::post('title')."</a>にいいねしました。"
+          $user->update_user_activity($author_uid, Input::post('uid'), $type, Input::post('nid'), 0);
           \Log::error("cccccccccccccccccccccccccc");
         } else {
-          $author = $user->get_user($author_uid);
+          if($uid == $author_uid) {
+            $message = '自分の<a href="#'. Input::post("nid"). '" class="activity">'.Input::post("title").'</a>にいいねを付けました。';
+          } else {
+            $message = '<a href="#" class="ac_user_name" data-uid="'.$uid.'">'. Input::post("user_name"). '</a>さんが<a href="#" class="ac_user_name" data-uid="'.$author_uid.'">'.$author["user_name"].'</a>さんの<a href="#'. Input::post("nid"). '" class="activity">'.Input::post("title").'</a>にいいねを付けました';
+          }
+          $return["message"] = strip_tags($message);
           \Log::error(print_r($author, true));
-          $user->insert_user_activity(Input::post('author_uid'), Input::post('uid'), '<a href="#" class="ac_user_name" data-uid="'.$uid.'">'. Input::post("user_name"). '</a>さんが<a href="#" class="ac_user_name" data-uid="'.$author_uid.'">'.$author["user_name"].'</a>さんの<a href="#'. Input::post("nid"). '" class="activity">'.Input::post("title").'</a>にいいねと言っています。', $type, Input::post('nid'));
+          $user->insert_user_activity(Input::post('author_uid'), Input::post('uid'), $message, $type, Input::post('nid'));
           $user->update_user_new_activity(Input::post('author_uid'), 1);
+          
           \Log::error("ddddddddddddddddddddddddddddddddddddd");
         }
         
@@ -509,9 +622,144 @@ class Controller_Api extends Controller_My
         $user->update_user_activity(Input::post('author_uid'), Input::post('uid'), "good", Input::post('nid'), 1);
         $user->update_user_new_activity_no_read(Input::post('uid'));
       }
+      $return["type"] = $type;
       header("Access-Control-Allow-Origin: *");
       header("Content-Type: application/json; charset=utf-8");
-      echo json_encode(array('nid' => Input::post('nid'), 'type' => $type), true);
+      echo json_encode($return, true);
+      exit(1);
+    }
+  }
+  
+  public function action_ungood()
+  {
+    if(Input::post()) {
+      $node = new Model_Node();
+      $user = new Model_User();
+      $uid = Input::post('uid');
+      $author_uid = Input::post('author_uid');
+      $author = $user->get_user($author_uid);
+      $return = ["nid" => Input::post('nid'), "uid" => Input::post('uid'), "author_uid" => $author_uid];
+      try {
+        \Log::error("aaaaaaaaaaaaaaaaaa");
+        $node->add_ungood_user(Input::post('uid'), Input::post('nid'));
+        $type = 'ungood';
+        $result = $user->get_user_activity(Input::post('author_uid'), Input::post('uid'), $type, Input::post('nid'));
+        \Log::error("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+        \Log::error(print_r($result, true));
+        if($result !== false && count($result) >= 1) {
+          $user->update_user_activity(Input::post('author_uid'), Input::post('uid'), $type, Input::post('nid'), 0);  //が貴方の<a href='#node-". Input::post('nid'). "' class='activity'>".Input::post('title')."</a>にいいねしました。"
+          \Log::error("cccccccccccccccccccccccccc");
+        } else {
+          \Log::error($uid);
+          \Log::error($author_uid);
+          if($uid == $author_uid) {
+            \Log::error("if");
+            $message = '自分の<a href="#'. Input::post("nid"). '" class="activity">'.Input::post("title").'</a>にだめねを付けました。';
+          } else {
+            \Log::error("else");
+            $message = '<a href="#" class="ac_user_name" data-uid="'.$uid.'">'. Input::post("user_name"). '</a>さんが<a href="#" class="ac_user_name" data-uid="'.$author_uid.'">'.$author["user_name"].'</a>さんの<a href="#'. Input::post("nid"). '" class="activity">'.Input::post("title").'</a>にだめねと言っています。';
+          }
+          $return["message"] = strip_tags($message);
+          \Log::error(print_r($author, true));
+          $user->insert_user_activity(Input::post('author_uid'), Input::post('uid'), $message, $type, Input::post('nid'));
+          $user->update_user_new_activity(Input::post('author_uid'), 1);
+          \Log::error("ddddddddddddddddddddddddddddddddddddd");
+        }
+        
+      } catch (Exception $e) {
+        \Log::error("The exception was created on line: " . $e->getLine());
+        \Log::error($e->getMessage());
+        $node->delete_ungood_user(Input::post('uid'), Input::post('nid'));
+        $type = 'cancel';
+        $user->update_user_activity(Input::post('author_uid'), Input::post('uid'), "good", Input::post('nid'), 1);
+        $user->update_user_new_activity_no_read(Input::post('uid'));
+      }
+      $return["type"] = $type;
+      header("Access-Control-Allow-Origin: *");
+      header("Content-Type: application/json; charset=utf-8");
+      echo json_encode($return, true);
+      exit(1);
+    }
+  }
+  
+  public function action_favorite_node()
+  {
+    if(Input::post()) {
+      $node = new Model_Node();
+      $user = new Model_User();
+      $uid = Input::post('uid');
+      $author_uid = Input::post('author_uid');
+      $author = $user->get_user($author_uid);
+      $return = ["nid" => Input::post('nid'), "uid" => Input::post('uid'), "author_uid" => $author_uid];
+      try {
+        \Log::error("aaaaaaaaaaaaaaaaaa");
+        $node->add_favorite_node(Input::post('uid'), Input::post('nid'));
+        $type = 'favorite';
+
+        $result = $user->get_user_activity(Input::post('author_uid'), Input::post('uid'), $type, Input::post('nid'));
+        \Log::error("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+        \Log::error(print_r($result, true));
+        if($result !== false && count($result) >= 1) {
+          $user->update_user_activity(Input::post('author_uid'), Input::post('uid'), $type, Input::post('nid'), 0);  //が貴方の<a href='#node-". Input::post('nid'). "' class='activity'>".Input::post('title')."</a>にいいねしました。"
+          \Log::error("cccccccccccccccccccccccccc");
+        } else {
+          if($uid == $author_uid) {
+            $message = '自分の<a href="#'. Input::post("nid"). '" class="activity">'.Input::post("title").'</a>をお気に入りに登録しました。';
+          } else {
+            $message = '<a href="#" class="ac_user_name" data-uid="'.$uid.'">'. Input::post("user_name"). '</a>さんが<a href="#" class="ac_user_name" data-uid="'.$author_uid.'">'.$author["user_name"].'</a>さんの<a href="#'. Input::post("nid"). '" class="activity">'.Input::post("title").'</a>をお気に入りに登録しました。';
+          }
+          $return["message"] = strip_tags($message);
+          $author = $user->get_user($author_uid);
+          \Log::error(print_r($author, true));
+          $user->insert_user_activity(Input::post('author_uid'), $uid, $message, $type, Input::post('nid'));
+          $user->update_user_new_activity(Input::post('author_uid'), 1);
+          \Log::error("ddddddddddddddddddddddddddddddddddddd");
+        }
+        
+      } catch (Exception $e) {
+        \Log::error("The exception was created on line: " . $e->getLine());
+        \Log::error($e->getMessage());
+        $node->delete_favorite_node(Input::post('uid'), Input::post('nid'));
+        $type = 'cancel';
+        $user->update_user_activity(Input::post('author_uid'), Input::post('uid'), "favorite", Input::post('nid'), 1);
+        $user->update_user_new_activity_no_read(Input::post('uid'));
+      }
+      $return["type"] = $type;
+      header("Access-Control-Allow-Origin: *");
+      header("Content-Type: application/json; charset=utf-8");
+      echo json_encode($return, true);
+      exit(1);
+    }
+  }
+  
+  public function action_follow()
+  {
+     if(Input::post()) {
+       $user = new Model_User();
+       $follow_user = $user->get_user(Input::post('uid'));
+       $return = ["follow_uid" => Input::post('follow_uid')];
+       try {
+         $user->add_follow_user(Input::post('uid'), Input::post('follow_uid'));
+         $type = 'follow';
+         $result = $user->get_user_activity(Input::post('follow_uid'), Input::post('uid'), $type, Input::post('follow_uid'));
+         
+         if(count($result) >= 1) {
+           $user->update_user_activity(Input::post('follow_uid'), Input::post('uid'), $type, Input::post('follow_uid'), 0);
+         } else {
+           $message = '<a href="#" class="ac_user_name" data-uid="'.$follow_user["uid"].'">'.$follow_user["user_name"].'</a>さんが貴方をフォローしました。';
+           $return["message"] = strip_tags($message);
+           $user->insert_user_activity(Input::post('follow_uid'), Input::post('uid'), '<a href="#" class="ac_user_name" data-uid="'.$follow_user["uid"].'">'.$follow_user["user_name"].'</a>さんが貴方をフォローしました。', $type, Input::post('follow_uid'));
+         }
+       } catch (Exception $e) {
+         \Log::error($e->getMessage());
+         $user->delete_follow_user(Input::post('uid'), Input::post('follow_uid'));
+         $user->update_user_activity(Input::post('follow_uid'), Input::post('uid'), "follow", Input::post('follow_uid'), 1);
+         $type = 'cancel';
+      }
+      $return['type'] = $type;
+      header("Access-Control-Allow-Origin: *");
+      header("Content-Type: application/json; charset=utf-8");
+      echo json_encode($return, true);
       exit(1);
     }
   }
@@ -547,86 +795,6 @@ class Controller_Api extends Controller_My
       exit(1);
   }
   
-  public function action_ungood()
-  {
-    if(Input::post()) {
-      $uid = Input::post('uid');
-      $author_uid = Input::post('author_uid');
-      
-      $node = new Model_Node();
-      $user = new Model_User();
-      try {
-        \Log::error("aaaaaaaaaaaaaaaaaa");
-        $node->add_ungood_user(Input::post('uid'), Input::post('nid'));
-        $type = 'ungood';
-        $result = $user->get_user_activity(Input::post('author_uid'), Input::post('uid'), $type, Input::post('nid'));
-        \Log::error("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
-        \Log::error(print_r($result, true));
-        if($result !== false && count($result) >= 1) {
-          $user->update_user_activity(Input::post('author_uid'), Input::post('uid'), $type, Input::post('nid'), 0);  //が貴方の<a href='#node-". Input::post('nid'). "' class='activity'>".Input::post('title')."</a>にいいねしました。"
-          \Log::error("cccccccccccccccccccccccccc");
-        } else {
-          $author = $user->get_user($author_uid);
-          \Log::error(print_r($author, true));
-          $user->insert_user_activity(Input::post('author_uid'), Input::post('uid'), '<a href="#" class="ac_user_name" data-uid="'.$uid.'">'. Input::post("user_name"). '</a>さんが<a href="#" class="ac_user_name" data-uid="'.$author_uid.'">'.$author["user_name"].'</a>さんの<a href="#'. Input::post("nid"). '" class="activity">'.Input::post("title").'</a>にだめねと言っています。', $type, Input::post('nid'));
-          $user->update_user_new_activity(Input::post('author_uid'), 1);
-          \Log::error("ddddddddddddddddddddddddddddddddddddd");
-        }
-        
-      } catch (Exception $e) {
-        \Log::error("The exception was created on line: " . $e->getLine());
-        \Log::error($e->getMessage());
-        $node->delete_ungood_user(Input::post('uid'), Input::post('nid'));
-        $type = 'cancel';
-        $user->update_user_activity(Input::post('author_uid'), Input::post('uid'), "good", Input::post('nid'), 1);
-        $user->update_user_new_activity_no_read(Input::post('uid'));
-      }
-      header("Access-Control-Allow-Origin: *");
-      header("Content-Type: application/json; charset=utf-8");
-      echo json_encode(array('nid' => Input::post('nid'), 'type' => $type), true);
-      exit(1);
-    }
-  }
-  
-  public function action_favorite_node()
-  {
-    if(Input::post()) {
-      $uid = Input::post('uid');
-      $author_uid = Input::post('author_uid');
-      
-      $node = new Model_Node();
-      $user = new Model_User();
-      try {
-        \Log::error("aaaaaaaaaaaaaaaaaa");
-        $node->add_favorite_node(Input::post('uid'), Input::post('nid'));
-        $type = 'favorite';
-        $result = $user->get_user_activity(Input::post('author_uid'), Input::post('uid'), $type, Input::post('nid'));
-        \Log::error("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
-        \Log::error(print_r($result, true));
-        if($result !== false && count($result) >= 1) {
-          $user->update_user_activity(Input::post('author_uid'), Input::post('uid'), $type, Input::post('nid'), 0);  //が貴方の<a href='#node-". Input::post('nid'). "' class='activity'>".Input::post('title')."</a>にいいねしました。"
-          \Log::error("cccccccccccccccccccccccccc");
-        } else {
-          $author = $user->get_user($author_uid);
-          \Log::error(print_r($author, true));
-          $user->insert_user_activity(Input::post('author_uid'), Input::post('uid'), '<a href="#" class="ac_user_name" data-uid="'.$uid.'">'. Input::post("user_name"). '</a>さんが<a href="#" class="ac_user_name" data-uid="'.$author_uid.'">'.$author["user_name"].'</a>さんの<a href="#'. Input::post("nid"). '" class="activity">'.Input::post("title").'</a>をお気に入りに登録しました。', $type, Input::post('nid'));
-          $user->update_user_new_activity(Input::post('author_uid'), 1);
-          \Log::error("ddddddddddddddddddddddddddddddddddddd");
-        }
-        
-      } catch (Exception $e) {
-        \Log::error("The exception was created on line: " . $e->getLine());
-        \Log::error($e->getMessage());
-        $node->delete_ungood_user(Input::post('uid'), Input::post('nid'));
-        $type = 'cancel';
-        $user->update_user_activity(Input::post('author_uid'), Input::post('uid'), "favorite", Input::post('nid'), 1);
-        $user->update_user_new_activity_no_read(Input::post('uid'));
-      }
-      header("Access-Control-Allow-Origin: *");
-      header("Content-Type: application/json; charset=utf-8");
-      echo json_encode(array('nid' => Input::post('nid'), 'type' => $type), true);
-      exit(1);
-    }
 /*
     if(Input::post()) {
       $uid = Input::post('uid');
@@ -657,34 +825,6 @@ class Controller_Api extends Controller_My
       exit(1);
     }
   */
-  }
-  
-  public function action_follow()
-  {
-     if(Input::post()) {
-       $user = new Model_User();
-       $follow_user = $user->get_user(Input::post('uid'));
-       try {
-         $user->add_follow_user(Input::post('uid'), Input::post('follow_uid'));
-         $type = 'follow';
-         $result = $user->get_user_activity(Input::post('follow_uid'), Input::post('uid'), $type, Input::post('follow_uid'));
-         if(count($result) >= 1) {
-           $user->update_user_activity(Input::post('follow_uid'), Input::post('uid'), $type, Input::post('follow_uid'), 0);
-         } else {
-           $user->insert_user_activity(Input::post('follow_uid'), Input::post('uid'), '<a href="#" class="ac_user_name" data-uid="'.$follow_user["uid"].'">'.$follow_user["user_name"].'</a>さんが貴方をフォローしました。', $type, Input::post('follow_uid'));
-         }
-       } catch (Exception $e) {
-         \Log::error($e->getMessage());
-         $user->delete_follow_user(Input::post('uid'), Input::post('follow_uid'));
-         $user->update_user_activity(Input::post('follow_uid'), Input::post('uid'), "follow", Input::post('follow_uid'), 1);
-         $type = 'cancel';
-      }
-      header("Access-Control-Allow-Origin: *");
-      header("Content-Type: application/json; charset=utf-8");
-      echo json_encode(array('follow_uid' => Input::post('follow_uid'), 'type' => $type), true);
-      exit(1);
-    }
-  }
   
   public function action_post_comment()
   {
@@ -701,11 +841,17 @@ class Controller_Api extends Controller_My
       $result = \Format::forge($response->body,'json')->to_array();
       \Log::error(print_r(Input::post(), true));
       $type = "comment";
-      $user->insert_user_activity($author_uid, Input::post('uid'), '<a href="#" class="ac_user_name" data-uid="'.$uid.'">'. Input::post("user_name"). '</a>さんが<a href="#" class="ac_user_name" data-uid="'.$author_uid.'">'.$author["user_name"].'</a>さんの<a href="#'. Input::post("nid"). '" class="activity">'.Input::post("title").'</a>にコメントしました。', $type, Input::post('nid'));
+      if($author_uid == $uid) {
+        $message = '自分の<a href="#'. Input::post("nid"). '" class="activity">'.Input::post("title").'</a>にコメントしました。';
+      } else {
+        $message = '<a href="#" class="ac_user_name" data-uid="'.$uid.'">'. Input::post("user_name"). '</a>さんが<a href="#" class="ac_user_name" data-uid="'.$author_uid.'">'.$author["user_name"].'</a>さんの<a href="#'. Input::post("nid"). '" class="activity">'.Input::post("title").'</a>にコメントしました。';
+      }  
+      $user->insert_user_activity($author_uid, Input::post('uid'), $message, $type, Input::post('nid'));
+      $message = strip_tags($message);
       //$user->insert_user_activity(29, Input::post('uid'), Input::post('user_name')."さんが".Input::post('title')."にコメントしました。", $type, Input::post('nid'));
       header("Access-Control-Allow-Origin: *");
       header("Content-Type: application/json; charset=utf-8");
-      echo json_encode(array('uid' => $uid, 'comment' => $comment, 'cid' => $result['cid'], 'nid' => $nid), true);
+      echo json_encode(array('uid' => $uid, 'comment' => $comment, 'cid' => $result['cid'], 'nid' => $nid, 'message' => $message, 'author_uid' => $author_uid), true);
       exit(1);
       
     }
@@ -718,8 +864,6 @@ class Controller_Api extends Controller_My
     } else {
        $uid = Input::get('uid');
     }
-    
-    
     $user = new Model_User();
     $activity = $user->get_user_activity_by_uid($uid);
     if($activity !== false) {
@@ -737,10 +881,7 @@ class Controller_Api extends Controller_My
       }
     }
     $data = ["notification" => ["activity" => $activity, "new_activity" => $new_activity], "my_activity" => ["activity" => $my_activity]];
-    header("Access-Control-Allow-Origin: *");
-    header("Content-Type: application/json; charset=utf-8");
-    echo json_encode($data, true);
-    exit(1);
+    $this->returnJson($data);
   }
   
   public function action_read_activity()
@@ -748,6 +889,7 @@ class Controller_Api extends Controller_My
     $uid = Input::post('uid');
     $user = new Model_User();
     $result = $user->update_user_new_activity($uid, 0);
+    $user->update_user_all_read_activity($uid);
     header("Access-Control-Allow-Origin: *");
     header("Content-Type: application/json; charset=utf-8");
     echo json_encode($result, true);
@@ -820,6 +962,23 @@ class Controller_Api extends Controller_My
     {
         echo "メールアドレスが間違ってる可能性があります";
     }
+  }
+  
+  public function action_test() {
+    \Log::error("test!!!!!!!!!!!!!");
+//    header("Access-Control-Allow-Origin: *");
+//    header("Content-Type: application/json; charset=utf-8");
+//    echo json_encode(["result" => "success"], true);
+    $this->template->title = 'Example Page';
+    $this->template->content = View::forge('api/form', [], false)->auto_filter(false);
+    return $this->template;
+    exit(1);
+    
+  }
+  
+  public function action_phpinfo() {
+    phpinfo();
+    exit(1);
   }
 
 	/**

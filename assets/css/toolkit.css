@@ -8259,7 +8259,7 @@ img.zoom-img {
 }
 @media (min-width: 768px) {
   .profile-header {
-    height: 500px;
+    height: 100px;
   }
   .profile-header .media-object {
     width: 110px;
@@ -8277,9 +8277,9 @@ img.zoom-img {
   border-bottom: 0;
 }
 .profile-header-nav .nav > li > a {
-  padding: 0 10px 18px;
+#  padding: 0 10px 18px;
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.5);
+#  color: rgba(255, 255, 255, 0.5);
 }
 .profile-header-nav .nav-tabs > li > a {
   transition: color 0.2s ease-in-out;
@@ -8287,7 +8287,7 @@ img.zoom-img {
 .profile-header-nav .nav-tabs > li > a:focus,
 .profile-header-nav .nav-tabs > li > a:hover,
 .profile-header-nav .nav > li.active > a {
-  color: #fff;
+  color: #33f;
   background: transparent;
   border-color: transparent;
 }

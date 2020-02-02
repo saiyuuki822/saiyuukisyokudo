@@ -48,7 +48,7 @@ class Model_User
     $sql .= ' WHERE name="'.$name. '"';
     $query = DB::query($sql);
     $result = $query->execute()->as_array();
-    if(!isset($uid)) {
+    if(!isset($name)) {
       return $result;
     } else {
       return $result[0];
@@ -95,6 +95,7 @@ class Model_User
     if(isset($uid)) {
       $sql .= ' WHERE g.field_good_user_target_id='.$uid;
     }
+    \Log::error($sql);
     $query = DB::query($sql);
     $result = $query->execute()->as_array();
     return $result;
@@ -160,6 +161,17 @@ class Model_User
   public function update_user_activity($uid, $from_uid, $type, $target_id, $delete_flg) {
     try {
       $sql = "UPDATE my_activity SET delete_flg = ". $delete_flg.", updated = ". time(). " WHERE uid =".$uid." AND from_uid = ".$from_uid." AND type ='".$type."' AND target_id = ".$target_id;
+      $query = DB::query($sql);
+      $result = $query->execute();
+    } catch(Exception $e) {
+      \Log::error($e->getMessage());
+    }
+    return $result;
+  }
+  
+  public function update_user_all_read_activity($uid) {
+    try {
+      $sql = "UPDATE my_activity SET read_flg = 1 WHERE uid =".$uid;
       $query = DB::query($sql);
       $result = $query->execute();
     } catch(Exception $e) {
@@ -237,6 +249,9 @@ class Model_User
       $sql = "SELECT my_activity.*,my_activity.updated,picture.user_picture_target_id AS picture FROM my_activity";
       $sql .= ' INNER JOIN user__user_picture picture ON my_activity.from_uid = picture.entity_id';
       $sql .= " WHERE uid =".$uid. " ORDER BY updated DESC";
+      //自分から自分を除外、いったんフロントでエラーが出るのでコメントアウト
+      //$sql .= " WHERE uid =".$uid. "AND uid != from_uid ORDER BY updated DESC";
+      \Log::error($sql);
       $query = DB::query($sql);
       $result = $query->execute()->as_array();
     } catch(Exception $e) {
@@ -260,10 +275,13 @@ class Model_User
     return $result;
   }
   
-  public function get_user_activity_no_read($uid, $time) {
+  public function get_user_activity_no_read($uid, $time = null) {
     try {
       $sql = "SELECT activity_id FROM my_activity";
-      $sql .= " WHERE uid =".$uid. " AND read_flg = 0 AND updated >= ". $time. " AND delete_flg = 0";
+      $sql .= " WHERE uid =".$uid. " AND read_flg = 0 AND delete_flg = 0";
+      if(isset($time)) {
+        $sql .= " AND updated >= ". $time;
+      }
       $query = DB::query($sql);
       $result = $query->execute()->as_array();
     } catch(Exception $e) {
@@ -271,6 +289,16 @@ class Model_User
       return false;
     }
     return $result;
+  }
+  
+  public function get_user_activity_no_read_count($uid, $time = null) {
+    $result = $this->get_user_activity_no_read($uid);
+    if(empty($result)) {
+      return 0;
+    } else {
+      return count($result);
+    }
+    
   }
   
   public function update_user_activity_by_id($activity_id) {
@@ -361,9 +389,11 @@ class Model_User
   
   public function get_user_uid_by_activate_password($pass) {
     try {
-      $sql = "SELECT uid FROM users_field_data WHERE pass = '". $pass. "'";
+      $sql = "SELECT uid FROM my_pass_token WHERE token = '". $pass. "'";
+      
       $query = DB::query($sql);
       $result = $query->execute()->current();
+      
       if(empty($result)) {
         return false;
       }
@@ -381,8 +411,106 @@ class Model_User
       $query = DB::query($sql);
       $result = $query->execute();
     } catch(Exception $e) {
-      \Log::error($e->getMessage());
     }
     return $result;
+  }
+  
+  public function insert_text_field($field_name, $uid, $value) {
+    try {
+      $result = DB::insert("user__".$field_name)->set(
+        array(
+          'bundle'=>'user',
+          'deleted'=>0,
+          'entity_id'=>$uid,
+          'revision_id'=>$uid,  
+          'delta' => 0, 
+          $field_name."_value" => $value
+        )
+      )->execute();
+    } catch(Exception $e) {
+      \Log::error($e->getMessage());
+      return false;
+    }
+    return $result;
+  }
+  public function update_text_field($field_name, $uid, $value) {
+    $result = DB::update("user__".$field_name)->set(
+      array(
+        'bundle'=>'user',
+        'deleted'=>0,
+        'entity_id'=>$uid,
+        'revision_id'=>$uid,  
+        'delta' => 0, 
+        $field_name."_value" => $value
+      )
+    )->where('entity_id', $uid)->execute();
+    return $result;
+  }
+  public function select_text_field($field_name, $entity_type, $entity_id, $return_array = false) {
+    if($return_array) {
+      $result = DB::select($field_name."_value")->from($entity_type."__".$field_name)->where('entity_id', $entity_id)->execute()->as_array($field_name."_value");
+      if(count($result) >= 1) {
+        return array_keys($result);
+      } else {
+        return false;
+      }
+    } else {
+      $result = DB::select()->from($entity_type."__".$field_name)->where('entity_id', $entity_id)->execute()->current();
+      return $result[$field_name."_value"];
+    }
+
+  }
+  
+  public function insert_image_field($field_name, $uid, $value) {
+    $result = DB::insert("user__".$field_name)->set(
+      array(
+        'bundle'=>'user',
+        'deleted'=>0,
+        'entity_id'=>$uid,
+        'revision_id'=>$uid,
+        'langcode' => 'ja',
+        'delta' => 0, 
+        $field_name."_target_id" => $value,
+        $field_name.'_alt' => 'test',
+        $field_name.'_width' => 400,
+        $field_name.'_height' => 100,
+      )
+    )->execute();
+    return $result;
+  }
+  
+  public function update_image_field($field_name, $uid, $value) {
+    $result = DB::update("user__".$field_name)->set(
+      array(
+        'bundle'=>'user',
+        'deleted'=>0,
+        'entity_id'=>$uid,
+        'revision_id'=>$uid,
+        'langcode' => 'ja',
+        'delta' => 0, 
+        $field_name."_target_id" => $value
+      )
+    )->where('entity_id', $uid)->execute(); 
+    return $result;
+  }
+  
+  public function select_image_field($field_name, $entity_type, $entity_id, $return_array = false) {
+    
+    if($return_array) {
+      $result = DB::select($field_name."_target_id")->from($entity_type."__".$field_name)->where('entity_id', $entity_id)->execute()->as_array($field_name."_value");
+      if(count($result) >= 1) {
+        return array_keys($result);
+      } else {
+        return false;
+      }
+    } else {
+      $result = DB::select()->from($entity_type."__".$field_name)->where('entity_id', $entity_id)->execute()->current();
+      if(is_null($result)) {
+        return false;
+      }
+      
+      return $result[$field_name."_target_id"];
+    }
+
   }
 }

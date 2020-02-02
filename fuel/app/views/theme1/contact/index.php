@@ -1,9 +1,11 @@
 
-
+<div id="content">
 <div id="main" style="margin-top:20px;">
 
 <section>
-<h2>お問い合わせ</h2>
+  <div class="well well-sm topbar" style="border-color:<?php echo $site_user["my_theme_color"]["value"];?>">
+    お問い合わせ
+  </div>
 <form method="post" action="/contact">
   
 <table class="ta1 mb1em">
@@ -35,4 +37,5 @@
 </form>
 </div>
 <!--/main-->
+</div>
 

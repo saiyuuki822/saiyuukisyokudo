@@ -40,6 +40,7 @@ class Controller_Login extends Controller_My
       $result = \Format::forge($response->body,'json')->to_array();
       
       $user = new Model_User();
+      
       $login_user = $user->get_user($result['uid']);
       
       Session::set('user', $login_user);

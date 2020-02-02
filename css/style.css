@@ -537,7 +537,7 @@ figcaption {
 	font-size: 11px;
 }
 img {
-	max-width: 100%;
+/*	max-width: 100%; */
 	height: auto;
 }
 #menubar_hdr {

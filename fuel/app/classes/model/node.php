@@ -11,6 +11,12 @@ class Model_Node
 		'langcode',
 	);
 
+  
+  private $commonModel;
+  
+  public function __construct() {
+    $this->commonModel = new Model_Common();
+  }
 
 	protected static $_table_name = 'nodes';
     
@@ -168,7 +174,9 @@ class Model_Node
    * ユーザー参照
    */
   public function add_good_user($uid, $nid) {
-    $sql = "INSERT INTO node__field_good_user(delta,entity_id,field_good_user_target_id) VALUES(".$uid.",".$nid.",".$uid.")";
+    $delta = $this->commonModel->select("node__field_good_user", ['entity_id' => $nid], true);
+    $delta = count($delta);
+    $sql = "INSERT INTO node__field_good_user(delta,entity_id,field_good_user_target_id) VALUES(".$delta.",".$nid.",".$uid.")";
     $query = DB::query($sql);
     $result = $query->execute();
     return $result;
@@ -189,7 +197,9 @@ class Model_Node
    * ユーザー参照
    */
   public function add_ungood_user($uid, $nid) {
-    $sql = "INSERT INTO node__field_ungood_user(delta,entity_id,field_ungood_user_target_id) VALUES(".$uid.",".$nid.",".$uid.")";
+    $delta = $this->commonModel->select("node__field_ungood_user", ['entity_id' => $nid], true);
+    $delta = count($delta);
+    $sql = "INSERT INTO node__field_ungood_user(delta,entity_id,field_ungood_user_target_id) VALUES(".$delta.",".$nid.",".$uid.")";
     $query = DB::query($sql);
     $result = $query->execute();
     return $result;

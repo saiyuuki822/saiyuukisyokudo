@@ -1,8 +1,11 @@
 
-
+<div id="content">
 <div id="main" style="margin-top:20px;">
 
-<h2>MENU</h2>
+  <div class="well well-sm topbar">
+    MENU
+  </div>
+  
 <?php $tag = array('icon_osusume.png', 'icon_ninki.png');?> 
   
 <?php foreach($list as $id => $data) { ?>
@@ -18,3 +21,4 @@
 
 </div>
 <!--/main-->
+</div>
