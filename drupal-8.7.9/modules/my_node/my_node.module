@@ -1,0 +1,67 @@
+<?php
+
+use Drupal\node\NodeInterface;
+use Drupal\node\Entity\Node;
+use Drupal\paragraphs\Entity\Paragraph;
+
+function my_node_preprocess_page(&$variables) {
+  $title = $_GET["title"];
+  $body = $_GET["body"];
+  $uid = $_GET["uid"];
+  $sentence = $_GET["sentence"];
+  if($variables["is_front"]) {
+    $nid = $_GET["nid"];
+    if(isset($nid)) {
+      $node = node_load($nid);
+      $node->title = $title;
+    } else {
+      $node = Node::create(array(
+        'type' => 'article',
+        'title' => $title,
+        'body'  =>  $body,
+        'langcode' => 'ja',
+        'uid' => $uid,
+        'status' => 1,
+      ));
+    }
+    $paragraph = Paragraph::create(['type' => 'image_and_caption',]);
+    $paragraph->set('field_sentence', $sentence);
+    $paragraph->isNew();
+    $paragraph->save();
+    $paragraph2 = Paragraph::create(['type' => 'image_and_caption',]);
+    $paragraph2->set('field_sentence', "うんちLove");
+    $paragraph2->isNew();
+    $paragraph2->save();
+    $current = [];
+    $current[] = array(
+      'target_id' => $paragraph2->id(),
+      'target_revision_id' => $paragraph->getRevisionId(),
+    );
+    $current = [];
+    $current[] = array(
+      'target_id' => $paragraph->id(),
+      'target_revision_id' => $paragraph->getRevisionId(),
+    );
+    $current[] = array(
+      'target_id' => $paragraph2->id(),
+      'target_revision_id' => $paragraph2->getRevisionId(),
+    );
+    $node->set('field_image_and_sentence', $current);
+    $node->save();
+  } 
+}
+
+/**
+ * Implements hook_mail().
+ */
+function my_node_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'notice':
+      $message['subject'] = "管理画面に訪問者が来ました";
+      $message['body'][] = '問い合わせ区分：'.$params["type"];
+      $message['body'][] = '名前：'.$params["name"];
+      $message['body'][] = '連絡先：'.$params["contact"];
+      $message['body'][] = '問い合わせ内容：'.$params["body"];
+      break;
+  }
+}
