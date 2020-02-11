@@ -280,7 +280,7 @@ $config_directories = [];
  *   $settings['hash_salt'] = file_get_contents('/home/example/salt.txt');
  * @endcode
  */
-$settings['hash_salt'] = 'O_xgiphJFSWNBLaNOhXY2vA-k1cGmYzH1fR9h84e941ePtqJV3_XB5mY4LN-KaWpF9sdxEadSw';
+$settings['hash_salt'] = 'lNV2uXi-u4TGfZnKJlcqeAKnNqE3cSfn_0Uw0gjD_p5kH8Rg1WKeIeRQB6T0t3yTglrQaaARyQ';
 
 /**
  * Deployment identifier.
@@ -765,17 +765,17 @@ $settings['entity_update_batch_size'] = 50;
  * Keep this code block at the end of this file to take full effect.
  */
 #
-# if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
-#   include $app_root . '/' . $site_path . '/settings.local.php';
-# }
+if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
+  include $app_root . '/' . $site_path . '/settings.local.php';
+}
 $databases['default']['default'] = array (
-  'database' => 'saiyuuki-syokudo_drupal',
-  'username' => 'saiyuuki-syokudo',
+  'database' => 'saiyuuki_drupal',
+  'username' => 'saiyuuki',
   'password' => 'saiyuuki3',
   'prefix' => '',
-  'host' => 'mysql727.db.sakura.ne.jp',
+  'host' => 'mysql749.db.sakura.ne.jp',
   'port' => '3306',
   'namespace' => 'Drupal\\Core\\Database\\Driver\\mysql',
   'driver' => 'mysql',
 );
-$config_directories['sync'] = 'sites/default/files/config_HSmpNcQwm7e6OO9gb3iq8FzlDtfgINas7QTif3nVYqstCNTlllcwF-83IMMviAZBVMyjBC0HlA/sync';
+$config_directories['sync'] = 'sites/default/files/config__bnq4TDnVycH0-4EZC_F7J5RyQIh7LRAzX3EAeuE4IKZhhAs2gdlsgNJNWmsbAGOAfLIwsDBeA/sync';

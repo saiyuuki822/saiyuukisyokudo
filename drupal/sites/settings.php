@@ -769,11 +769,11 @@ if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
   include $app_root . '/' . $site_path . '/settings.local.php';
 }
 $databases['default']['default'] = array (
-  'database' => 'saiyuuki-syokudo_drupal',
-  'username' => 'saiyuuki-syokudo',
+  'database' => 'saiyuuki_drupal',
+  'username' => 'saiyuuki',
   'password' => 'saiyuuki3',
   'prefix' => '',
-  'host' => 'mysql727.db.sakura.ne.jp',
+  'host' => 'mysql749.db.sakura.ne.jp',
   'port' => '3306',
   'namespace' => 'Drupal\\Core\\Database\\Driver\\mysql',
   'driver' => 'mysql',

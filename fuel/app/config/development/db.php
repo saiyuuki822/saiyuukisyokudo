@@ -6,8 +6,8 @@
 return array(
 	'default' => array(
 		'connection'  => array(
-			'dsn'        => 'mysql:host=mysql727.db.sakura.ne.jp;dbname=saiyuuki-syokudo_drupal',
-			'username'   => 'saiyuuki-syokudo',
+			'dsn'        => 'mysql:host=mysql749.db.sakura.ne.jp;dbname=saiyuuki_drupal',
+			'username'   => 'saiyuuki',
 			'password'   => 'saiyuuki3',
 		),
 	),

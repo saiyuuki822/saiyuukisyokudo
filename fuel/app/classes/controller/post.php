@@ -54,10 +54,10 @@ class Controller_Post extends Controller_My
       } 
       if(isset($edit_nid) && strlen($edit_nid)) {
         \Log::info("node_post_edit!!!");
-        $curl = Request::forge('http://syokudo.jpn.org/api/aaa', 'curl');
+        $curl = Request::forge('http://myportal.monster/api/aaa', 'curl');
       } else {
         \Log::info("node_post!!!");
-        $curl = Request::forge('http://syokudo.jpn.org/api/node_post', 'curl');
+        $curl = Request::forge('http://myportal.monster/api/node_post', 'curl');
       }
       $curl->set_option(CURLOPT_RETURNTRANSFER,true); 
       $curl->set_option(CURLOPT_BINARYTRANSFER,true);
@@ -92,7 +92,7 @@ class Controller_Post extends Controller_My
       } else {
         $nid = Input::post('post_nid');
       }
-      $curl = Request::forge('http://syokudo.jpn.org/api/node_data/'.$nid, 'curl');
+      $curl = Request::forge('http://myportal.monster/api/node_data/'.$nid, 'curl');
       $curl->set_params(array('nid' => $nid));
       $response = $curl->execute()->response();
       $result = \Format::forge($response->body,'json')->to_array();
@@ -130,7 +130,7 @@ class Controller_Post extends Controller_My
 	{
     if(Input::post()) {
       $nid = Input::post('post_nid');
-      $curl = Request::forge('http://syokudo.jpn.org/api/node_delete', 'curl');
+      $curl = Request::forge('http://myportal.monster/api/node_delete', 'curl');
       $curl->set_params(array('nid' => $nid));
       $response = $curl->execute()->response();
       echo json_encode(array('nid' => $nid), true);
@@ -144,7 +144,7 @@ class Controller_Post extends Controller_My
     if(Input::post()) {
       $file = $_FILES['body_file']['tmp_name'];
       $cfile = new CURLFile($_FILES["body_file"]["tmp_name"],'image/jpeg','test_name');
-      $curl = Request::forge('http://syokudo.jpn.org/api/upload_file', 'curl');
+      $curl = Request::forge('http://myportal.monster/api/upload_file', 'curl');
       $curl->set_option(CURLOPT_RETURNTRANSFER,true);
       $curl->set_option(CURLOPT_BINARYTRANSFER,true);
       $curl->set_header('Content-Type','multipart/form-data');
@@ -220,7 +220,7 @@ class Controller_Post extends Controller_My
       $login_user = Session::get('user');
       $comment = Input::post('comment');
       $nid = Input::post('nid');
-      $curl = Request::forge('http://syokudo.jpn.org/api/post_comment', 'curl');
+      $curl = Request::forge('http://myportal.monster/api/post_comment', 'curl');
       $curl->set_params(array('nid' => $nid, 'uid' => $login_user['uid'], 'comment' => $comment));
       $response = $curl->execute()->response();
       Response::redirect('/', 'refresh', 200);
@@ -286,7 +286,7 @@ class Controller_Post extends Controller_My
       $user_body = Input::post('user_body');
       $file = $_FILES['picture']['tmp_name'];
       $cfile = new CURLFile($_FILES["picture"]["tmp_name"],'image/jpeg','picture');
-      $curl = Request::forge('http://syokudo.jpn.org/api/user_post', 'curl');
+      $curl = Request::forge('http://myportal.monster/api/user_post', 'curl');
       $curl->set_option(CURLOPT_RETURNTRANSFER,true); 
       $curl->set_option(CURLOPT_BINARYTRANSFER,true);
       $curl->set_header('Content-Type','multipart/form-data');
