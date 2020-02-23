@@ -81,6 +81,7 @@ class Controller_Api extends Controller_My
             //$pass = $user->get_user_activate_password($name);
 
             $params["pass"] = $pass;
+            $params["host"] = Config::get('my_host');
             $email->body(\View::forge('email/activate', $params));
             $email->send();
           }

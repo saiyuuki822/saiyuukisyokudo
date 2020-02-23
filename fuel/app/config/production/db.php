@@ -6,9 +6,9 @@
 return array(
 	'default' => array(
 		'connection'  => array(
-			'dsn'        => 'mysql:host=localhost;dbname=fuel_prod',
-			'username'   => 'fuel_app',
-			'password'   => 'super_secret_password',
+			'dsn'        => 'mysql:host=mysql727.db.sakura.ne.jp;dbname=saiyuuki-syokudo_drupal',
+			'username'   => 'saiyuuki-syokudo',
+			'password'   => 'saiyuuki3',
 		),
 	),
 );
