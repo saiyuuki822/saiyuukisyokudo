@@ -769,7 +769,7 @@ if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
   include $app_root . '/' . $site_path . '/settings.local.php';
 }
 $databases['default']['default'] = array (
-  'database' => 'saiyuuki_drupal',
+  'database' => 'saiyuuki_friend',
   'username' => 'saiyuuki',
   'password' => 'saiyuuki3',
   'prefix' => '',
