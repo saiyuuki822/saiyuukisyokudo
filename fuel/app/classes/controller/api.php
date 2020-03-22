@@ -45,7 +45,7 @@ class Controller_Api extends Controller_My
       $edit_uid = Input::post('edit_uid');
       $file = $_FILES['picture']['tmp_name'];
       $cfile = new CURLFile($_FILES["picture"]["tmp_name"],'image/jpeg','picture');
-      $curl = Request::forge('http://myportal.monster/api/user_post', 'curl');
+      $curl = Request::forge('http://mynews.jpn.com/api/user_post', 'curl');
       $curl->set_option(CURLOPT_RETURNTRANSFER,true);
       $curl->set_option(CURLOPT_BINARYTRANSFER,true);
       $curl->set_header('Content-Type','multipart/form-data');
@@ -67,7 +67,7 @@ class Controller_Api extends Controller_My
       if($result !== false && strlen($mail) >= 1 && filter_var($mail, FILTER_VALIDATE_EMAIL)) {
         if(!(isset($edit_uid) && strlen($edit_uid) >= 1)) {
           $email = Email::forge();
-          $email->from('info@myportal.monster', 'MyPORTAL');
+          $email->from('info@mynews.jpn.com', 'MyPORTAL');
           if(isset($user_name)) {
             $email->to($mail, $user_name. 'さん');
           } 
@@ -163,7 +163,7 @@ class Controller_Api extends Controller_My
     } else {
       $name = Input::post('name');
       $password = Input::post('password');
-      $curl = Request::forge('http://myportal.monster/api/user_login', 'curl');
+      $curl = Request::forge('http://mynews.jpn.com/api/user_login', 'curl');
       $curl->set_params(array('name' => $name, 'pass' => $password));
       $response = $curl->execute()->response();
       $result = \Format::forge($response->body,'json')->to_array();
@@ -247,7 +247,7 @@ class Controller_Api extends Controller_My
         $query_string = $query_string. "&tag_id=".$post_tag_id;
       }
     }
-    $curl = Request::forge('http://myportal.monster/api/node_list/'.$type. "/".$entity_id. $query_string, 'curl');
+    $curl = Request::forge('http://mynews.jpn.com/api/node_list/'.$type. "/".$entity_id. $query_string, 'curl');
     $curl->set_method('post');
     
     $response = $curl->execute()->response();
@@ -349,9 +349,9 @@ class Controller_Api extends Controller_My
     $node = new Model_Node();
     $user = new Model_User();
     $word = Input::post("word");
-    $url = 'http://myportal.monster/api/node_search/'.$type. "/".$entity_id. "/".$word."?offset=".$offset."&limit=".$limit;
+    $url = 'http://mynews.jpn.com/api/node_search/'.$type. "/".$entity_id. "/".$word."?offset=".$offset."&limit=".$limit;
     \Log::error($url);
-    $curl = Request::forge('http://myportal.monster/api/node_search/'.$type. "/".$entity_id. "/".$word."?offset=".$offset."&limit=".$limit, 'curl');
+    $curl = Request::forge('http://mynews.jpn.com/api/node_search/'.$type. "/".$entity_id. "/".$word."?offset=".$offset."&limit=".$limit, 'curl');
     $response = $curl->execute()->response();
     $list = \Format::forge($response->body,'json')->to_array();
     foreach($list as $id => $data) {
@@ -445,7 +445,7 @@ class Controller_Api extends Controller_My
   
   public function action_user_list()
   {
-    $curl = Request::forge('http://myportal.monster/api/user_list/all', 'curl');
+    $curl = Request::forge('http://mynews.jpn.com/api/user_list/all', 'curl');
     $response = $curl->execute()->response();
     $list = \Format::forge($response->body,'json')->to_array();
     foreach($list as $id => $data) {
@@ -478,12 +478,12 @@ class Controller_Api extends Controller_My
       }
       if(isset($edit_nid) && strlen($edit_nid)) {
         $post_type = "edit";
-        $curl = Request::forge('http://myportal.monster/api/node_edit', 'curl');
+        $curl = Request::forge('http://mynews.jpn.com/api/node_edit', 'curl');
         $is_edit = true;
       } else {
         $post_type = "regist";
         \Log::info("node_post!!!");
-        $curl = Request::forge('http://myportal.monster/api/node_post', 'curl');
+        $curl = Request::forge('http://mynews.jpn.com/api/node_post', 'curl');
       }
       $params = array('title' => $title, 'body' => $body, 'uid' => $uid, 'navigation' => $navigation,'nid' => $edit_nid, 'public_scope' => $public_scope);
       if(isset($_FILES['post_file'])) {
@@ -836,7 +836,7 @@ class Controller_Api extends Controller_My
       $author = $user->get_user($author_uid);
       $comment = Input::post('comment');
       $nid = Input::post('nid');
-      $curl = Request::forge('http://myportal.monster/api/post_comment', 'curl');
+      $curl = Request::forge('http://mynews.jpn.com/api/post_comment', 'curl');
       $curl->set_params(array('nid' => $nid, 'uid' => $uid, 'comment' => $comment));
       $response = $curl->execute()->response();
       $result = \Format::forge($response->body,'json')->to_array();
@@ -907,7 +907,7 @@ class Controller_Api extends Controller_My
   
   public function action_node_delete() {
     $nid = Input::post('nid');
-    $curl = Request::forge('http://myportal.monster/api/node_delete', 'curl');
+    $curl = Request::forge('http://mynews.jpn.com/api/node_delete', 'curl');
     $curl->set_params(array('nid' => $nid));
     $response = $curl->execute()->response();
     $result = \Format::forge($response->body,'json')->to_array();
@@ -943,7 +943,7 @@ class Controller_Api extends Controller_My
       $user_name = Input::post('user_name');
     }
     $email = Email::forge();
-    $email->from('info@myportal.monster', 'MyPORTAL');
+    $email->from('info@mynews.jpn.com', 'MyPORTAL');
     if(isset($user_name)) {
       $email->to('saiyuuki.world.life@gmail.com', $user_name. 'さん');
     } 
